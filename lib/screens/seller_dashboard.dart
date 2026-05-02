@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:alif_flow/theme/app_theme.dart';
+import 'package:alif_flow/services/auth_service.dart';
 
 class SellerDashboard extends StatefulWidget {
   const SellerDashboard({super.key});
@@ -10,6 +11,7 @@ class SellerDashboard extends StatefulWidget {
 
 class _SellerDashboardState extends State<SellerDashboard> {
   int _selectedIndex = 0;
+  final _authService = AuthService();
   final List<Map<String, dynamic>> _salesEntries = [
     {'product': '', 'qty': 0, 'price': 0.0, 'paid': 0.0},
   ];
@@ -36,8 +38,11 @@ class _SellerDashboardState extends State<SellerDashboard> {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () {
-              Navigator.pushReplacementNamed(context, '/login');
+            onPressed: () async {
+              await _authService.signOut();
+              if (context.mounted) {
+                Navigator.pushReplacementNamed(context, '/login');
+              }
             },
           ),
         ],

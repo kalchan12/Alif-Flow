@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:alif_flow/theme/app_theme.dart';
+import 'package:alif_flow/services/auth_service.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -9,7 +10,67 @@ class RegistrationScreen extends StatefulWidget {
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _authService = AuthService();
+  
   String _selectedRole = 'Seller';
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _register() async {
+    if (_passwordController.text != _confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Passwords do not match')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _authService.signUp(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+        fullName: _nameController.text.trim(),
+        role: _selectedRole,
+      );
+      
+      if (!mounted) return;
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Registration successful! Please sign in.')),
+      );
+      
+      // Navigate back to login
+      Navigator.pushReplacementNamed(context, '/login');
+      
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error registering: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,16 +101,18 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-              const TextField(
-                decoration: InputDecoration(
+              TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(
                   labelText: 'Full Name',
                   hintText: 'John Doe',
                   prefixIcon: Icon(Icons.person_outline),
                 ),
               ),
               const SizedBox(height: 16),
-              const TextField(
-                decoration: InputDecoration(
+              TextField(
+                controller: _emailController,
+                decoration: const InputDecoration(
                   labelText: 'Email Address',
                   hintText: 'name@company.com',
                   prefixIcon: Icon(Icons.email_outlined),
@@ -57,8 +120,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 16),
-              const TextField(
-                decoration: InputDecoration(
+              TextField(
+                controller: _passwordController,
+                decoration: const InputDecoration(
                   labelText: 'Password',
                   hintText: 'Create a password',
                   prefixIcon: Icon(Icons.lock_outline),
@@ -67,8 +131,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 obscureText: true,
               ),
               const SizedBox(height: 16),
-              const TextField(
-                decoration: InputDecoration(
+              TextField(
+                controller: _confirmPasswordController,
+                decoration: const InputDecoration(
                   labelText: 'Confirm Password',
                   hintText: 'Re-enter your password',
                   prefixIcon: Icon(Icons.lock_outline),
@@ -112,16 +177,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               ),
               const SizedBox(height: 48),
               ElevatedButton(
-                onPressed: () {
-                  // Registration logic
-                  // Navigate to the appropriate dashboard
-                  if (_selectedRole == 'Seller') {
-                    Navigator.pushReplacementNamed(context, '/seller_dashboard');
-                  } else {
-                    Navigator.pushReplacementNamed(context, '/admin_dashboard');
-                  }
-                },
-                child: const Text('Register'),
+                onPressed: _isLoading ? null : _register,
+                child: _isLoading 
+                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white))
+                    : const Text('Register'),
               ),
               const SizedBox(height: 16),
               Row(

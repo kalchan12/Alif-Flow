@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:alif_flow/theme/app_theme.dart';
+import 'package:alif_flow/services/auth_service.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -10,6 +11,7 @@ class AdminDashboard extends StatefulWidget {
 
 class _AdminDashboardState extends State<AdminDashboard> {
   int _selectedIndex = 0;
+  final _authService = AuthService();
   
   // Dummy data
   final List<Map<String, dynamic>> _reports = [
@@ -41,8 +43,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () {
-              Navigator.pushReplacementNamed(context, '/login');
+            onPressed: () async {
+              await _authService.signOut();
+              if (context.mounted) {
+                Navigator.pushReplacementNamed(context, '/login');
+              }
             },
           ),
         ],
