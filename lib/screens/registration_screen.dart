@@ -16,7 +16,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final _confirmPasswordController = TextEditingController();
   final _authService = AuthService();
   
-  String _selectedRole = 'Seller';
+  String _selectedRole = 'Sales';
   bool _isLoading = false;
 
   @override
@@ -154,8 +154,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               SegmentedButton<String>(
                 segments: const [
                   ButtonSegment(
-                    value: 'Seller',
-                    label: Text('Seller'),
+                    value: 'Sales',
+                    label: Text('Sales'),
                     icon: Icon(Icons.storefront),
                   ),
                   ButtonSegment(
