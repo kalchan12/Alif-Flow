@@ -5,6 +5,7 @@ import 'package:alif_flow/screens/login_screen.dart';
 import 'package:alif_flow/screens/registration_screen.dart';
 import 'package:alif_flow/screens/seller_dashboard.dart';
 import 'package:alif_flow/screens/admin_dashboard.dart';
+import 'package:alif_flow/screens/splash_screen.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -40,8 +41,9 @@ class AlifFlowApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeProvider.themeMode,
-          initialRoute: '/login',
+          initialRoute: '/splash',
           routes: {
+            '/splash': (context) => const SplashScreen(),
             '/login': (context) => const LoginScreen(),
             '/register': (context) => const RegistrationScreen(),
             '/seller_dashboard': (context) => const SellerDashboard(),
