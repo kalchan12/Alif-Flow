@@ -31,45 +31,48 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Logo / Icon
-            Container(
-              height: 120,
-              width: 120,
-              decoration: BoxDecoration(
-                color: colorScheme.primary.withOpacity(0.1),
-                shape: BoxShape.circle,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Logo / Icon
+              Container(
+                height: 120,
+                width: 120,
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.insights,
+                  color: colorScheme.primary,
+                  size: 60,
+                ),
               ),
-              child: Icon(
-                Icons.insights,
-                color: colorScheme.primary,
-                size: 60,
+              const SizedBox(height: 24),
+              // App Name
+              Text(
+                'Alif-Flow',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.primary,
+                  letterSpacing: 1.2,
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            // App Name
-            Text(
-              'Alif-Flow',
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: colorScheme.primary,
-                letterSpacing: 1.2,
+              const SizedBox(height: 48),
+              // Loading indicator
+              SizedBox(
+                width: 40,
+                height: 40,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+                ),
               ),
-            ),
-            const SizedBox(height: 48),
-            // Loading indicator
-            SizedBox(
-              width: 40,
-              height: 40,
-              child: CircularProgressIndicator(
-                strokeWidth: 3,
-                valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

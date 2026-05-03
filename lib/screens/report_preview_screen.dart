@@ -10,8 +10,13 @@ class ReportPreviewScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Preview Report'),
       ),
-      body: const Center(
-        child: Text('Report Preview Content'),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: const Center(
+            child: Text('Report Preview Content'),
+          ),
+        ),
       ),
     );
   }
