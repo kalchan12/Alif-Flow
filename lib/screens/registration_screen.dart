@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:alif_flow/theme/app_theme.dart';
 import 'package:alif_flow/services/auth_service.dart';
 
 class RegistrationScreen extends StatefulWidget {
