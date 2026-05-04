@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:alif_flow/services/auth_service.dart';
+import 'package:alif_flow/utils/ui_helpers.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -47,19 +48,20 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         role: _selectedRole,
       );
       
-      if (!mounted) return;
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registration successful! Please sign in.')),
-      );
-      
-      // Navigate back to login
-      Navigator.pushReplacementNamed(context, '/login');
+      if (mounted) {
+        UiHelpers.showCustomToast(
+          context, 
+          'Registration successful! You are now logged in.',
+        );
+        Navigator.pushReplacementNamed(context, '/login');
+      }
       
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error registering: ${e.toString()}')),
+        UiHelpers.showCustomToast(
+          context, 
+          'Error registering: ${e.toString()}', 
+          isError: true,
         );
       }
     } finally {

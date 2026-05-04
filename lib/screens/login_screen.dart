@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:alif_flow/theme/theme_provider.dart';
 import 'package:alif_flow/services/auth_service.dart';
+import 'package:alif_flow/utils/ui_helpers.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -45,8 +46,10 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error logging in: ${e.toString()}')),
+        UiHelpers.showCustomToast(
+          context, 
+          'Error logging in: ${e.toString()}', 
+          isError: true,
         );
       }
     } finally {
