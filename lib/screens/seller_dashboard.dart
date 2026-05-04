@@ -314,9 +314,7 @@ class _SellerDashboardState extends State<SellerDashboard> {
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/report-preview');
-                        },
+                        onPressed: _submitReport,
                         icon: const Icon(Icons.preview_rounded, size: 18),
                         label: const Text('Preview Report'),
                         style: OutlinedButton.styleFrom(
@@ -331,12 +329,7 @@ class _SellerDashboardState extends State<SellerDashboard> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: FilledButton.icon(
-                        onPressed: () {
-                          UiHelpers.showCustomToast(
-                            context,
-                            'Report submitted successfully!',
-                          );
-                        },
+                        onPressed: _submitReport,
                         icon: const Icon(Icons.send_rounded, size: 18),
                         label: const Text('Submit Report'),
                         style: FilledButton.styleFrom(
@@ -389,5 +382,24 @@ class _SellerDashboardState extends State<SellerDashboard> {
         ),
       ],
     );
+  }
+
+  Future<void> _submitReport() async {
+    final result = await Navigator.pushNamed(
+      context, 
+      '/report-preview',
+      arguments: {
+        'salesEntries': _salesEntries,
+        'productMovement': _productMovement,
+      },
+    );
+
+    if (result == true) {
+      setState(() {
+        _salesEntries.clear();
+        _salesEntries.add(SalesEntry());
+        _productMovement = ProductMovement();
+      });
+    }
   }
 }
