@@ -7,11 +7,8 @@ import 'package:alif_flow/screens/seller_dashboard.dart';
 import 'package:alif_flow/screens/admin_dashboard.dart';
 import 'package:alif_flow/screens/splash_screen.dart';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
-// IMPORTANT: Replace these with your actual Supabase project URL and Anon Key
-const supabaseUrl = 'YOUR_SUPABASE_URL_HERE';
-const supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY_HERE';
 
 /// Global theme provider instance accessible throughout the app.
 final themeProvider = ThemeProvider();
@@ -19,6 +16,15 @@ final themeProvider = ThemeProvider();
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  await dotenv.load(fileName: ".env");
+
+  final supabaseUrl = dotenv.env['SUPABASE_URL'] ?? '';
+  final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'] ?? '';
+
+  if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) {
+    debugPrint('Warning: Supabase credentials not found in .env');
+  }
+
   await Supabase.initialize(
     url: supabaseUrl,
     anonKey: supabaseAnonKey,
