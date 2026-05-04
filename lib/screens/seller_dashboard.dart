@@ -146,7 +146,7 @@ class _SellerDashboardState extends State<SellerDashboard> {
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: AppTheme.textDark,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                         ),
@@ -190,10 +190,10 @@ class _SellerDashboardState extends State<SellerDashboard> {
         ),
         Container(
           padding: const EdgeInsets.all(16.0),
-          decoration: const BoxDecoration(
-            color: AppTheme.surfaceWhite,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
             border: Border(
-              top: BorderSide(color: AppTheme.borderLight),
+              top: BorderSide(color: Theme.of(context).colorScheme.outline),
             ),
           ),
           child: SafeArea(
@@ -247,7 +247,7 @@ class _SellerDashboardState extends State<SellerDashboard> {
                   'Product ${entryIndex + 1}',
                   style: const TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.textDark,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 if (_salesEntries.length > 1)

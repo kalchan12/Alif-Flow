@@ -128,14 +128,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
             itemCount: _reports.length + 1,
             itemBuilder: (context, index) {
               if (index == 0) {
-                return const Padding(
-                  padding: EdgeInsets.only(bottom: 16.0),
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
                   child: Text(
                     'Recent Reports',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: AppTheme.textDark,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 );
@@ -160,9 +160,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       const SizedBox(height: 8),
                       Text(
                         'Total Sales: \$${report['total']}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w500,
-                          color: AppTheme.primaryCyan,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
                     ],
@@ -186,7 +186,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      const Icon(Icons.chevron_right, color: AppTheme.textGray),
+                      Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4)),
                     ],
                   ),
                   onTap: () {

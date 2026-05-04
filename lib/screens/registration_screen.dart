@@ -87,20 +87,20 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
+                  Text(
                     'Join Alif-Flow',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: AppTheme.textDark,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Enter your details to register as a new user.',
                     style: TextStyle(
                       fontSize: 14,
-                      color: AppTheme.textGray,
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -145,12 +145,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     obscureText: true,
                   ),
                   const SizedBox(height: 24),
-                  const Text(
+                  Text(
                     'Select Role',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: AppTheme.textDark,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -174,8 +174,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       });
                     },
                     style: SegmentedButton.styleFrom(
-                      selectedBackgroundColor: AppTheme.primaryCyan.withOpacity(0.1),
-                      selectedForegroundColor: AppTheme.primaryCyan,
+                      selectedBackgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      selectedForegroundColor: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                   const SizedBox(height: 48),
