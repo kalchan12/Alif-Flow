@@ -103,7 +103,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ? 'Switch to Light Mode'
                         : 'Switch to Dark Mode',
                     style: IconButton.styleFrom(
-                      backgroundColor: colorScheme.primary.withOpacity(0.1),
+                      backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -129,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           height: 80,
                           width: 80,
                           decoration: BoxDecoration(
-                            color: colorScheme.primary.withOpacity(0.1),
+                            color: colorScheme.primary.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
                           child: Center(
@@ -156,7 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 14,
-                            color: colorScheme.onSurface.withOpacity(0.6),
+                            color: colorScheme.onSurface.withValues(alpha: 0.6),
                           ),
                         ),
                         const SizedBox(height: 48),
@@ -205,7 +205,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             Text(
                               "Don't have an account? ",
                               style: TextStyle(
-                                color: colorScheme.onSurface.withOpacity(0.6),
+                                color: colorScheme.onSurface.withValues(alpha: 0.6),
                                 fontSize: 14,
                               ),
                             ),

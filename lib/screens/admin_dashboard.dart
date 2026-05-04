@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:alif_flow/theme/app_theme.dart';
 import 'package:alif_flow/utils/ui_helpers.dart';
 import 'package:alif_flow/widgets/responsive_layout.dart';
 
@@ -169,7 +168,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                         decoration: BoxDecoration(
-                          color: isPending ? Colors.orange.withOpacity(0.1) : Colors.green.withOpacity(0.1),
+                          color: isPending ? Colors.orange.withValues(alpha: 0.1) : Colors.green.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -182,7 +181,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4)),
+                      Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4)),
                     ],
                   ),
                   onTap: () {

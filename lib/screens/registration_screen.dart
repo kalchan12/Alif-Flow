@@ -101,7 +101,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     'Enter your details to register as a new user.',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -175,7 +175,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       });
                     },
                     style: SegmentedButton.styleFrom(
-                      selectedBackgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      selectedBackgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                       selectedForegroundColor: Theme.of(context).colorScheme.primary,
                     ),
                   ),

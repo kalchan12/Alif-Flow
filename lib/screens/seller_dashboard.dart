@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:alif_flow/models/sales_entry.dart';
 import 'package:alif_flow/utils/ui_helpers.dart';
 import 'package:alif_flow/widgets/responsive_layout.dart';
+import 'package:alif_flow/widgets/sales_entry_card.dart';
+import 'package:alif_flow/widgets/product_movement_card.dart';
+import 'package:alif_flow/widgets/summary_card.dart';
 
 class SellerDashboard extends StatefulWidget {
   const SellerDashboard({super.key});
@@ -11,13 +15,30 @@ class SellerDashboard extends StatefulWidget {
 
 class _SellerDashboardState extends State<SellerDashboard> {
   int _selectedIndex = 0;
-  final List<Map<String, dynamic>> _salesEntries = [
-    {'product': '', 'qty': 0, 'price': 0.0, 'paid': 0.0},
+
+  // Sales data
+  final List<SalesEntry> _salesEntries = [SalesEntry()];
+  ProductMovement _productMovement = ProductMovement();
+
+  // Dynamic product/category suggestions (grow as users type new ones)
+  final List<String> _productSuggestions = [
+    '5 Litre Soap',
+    '2 Litre Soap',
+    '1 Litre Soap',
+    'Unbottled Soap',
   ];
+  final List<String> _categorySuggestions = [
+    'Liquid Soap',
+    'Bar Soap',
+    'Detergent',
+    'Cleaning Supplies',
+  ];
+
+  // --- Entry Management ---
 
   void _addEntry() {
     setState(() {
-      _salesEntries.add({'product': '', 'qty': 0, 'price': 0.0, 'paid': 0.0});
+      _salesEntries.add(SalesEntry());
     });
   }
 
@@ -28,6 +49,51 @@ class _SellerDashboardState extends State<SellerDashboard> {
       });
     }
   }
+
+  void _duplicateEntry(int index) {
+    final source = _salesEntries[index];
+    setState(() {
+      _salesEntries.insert(
+        index + 1,
+        SalesEntry(
+          productName: source.productName,
+          category: source.category,
+          quantitySold: source.quantitySold,
+          unitPrice: source.unitPrice,
+          manualTotal: source.manualTotal,
+          amountReceived: source.amountReceived,
+        ),
+      );
+    });
+  }
+
+  void _updateEntry(int index, SalesEntry updated) {
+    setState(() {
+      _salesEntries[index] = updated;
+
+      // Auto-add new product/category suggestions
+      if (updated.productName.isNotEmpty &&
+          !_productSuggestions.contains(updated.productName)) {
+        _productSuggestions.add(updated.productName);
+      }
+      if (updated.category.isNotEmpty &&
+          !_categorySuggestions.contains(updated.category)) {
+        _categorySuggestions.add(updated.category);
+      }
+    });
+  }
+
+  // --- Computed Summary ---
+
+  double get _totalSales =>
+      _salesEntries.fold(0.0, (sum, e) => sum + e.totalPrice);
+
+  double get _totalReceived =>
+      _salesEntries.fold(0.0, (sum, e) => sum + e.amountReceived);
+
+  double get _totalBalance => _totalSales - _totalReceived;
+
+  // --- Build ---
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +125,7 @@ class _SellerDashboardState extends State<SellerDashboard> {
                 NavigationRailDestination(
                   icon: Icon(Icons.dashboard_outlined),
                   selectedIcon: Icon(Icons.dashboard),
-                  label: Text('Data Entry'),
+                  label: Text('Sales Entry'),
                 ),
                 NavigationRailDestination(
                   icon: Icon(Icons.history_outlined),
@@ -90,7 +156,7 @@ class _SellerDashboardState extends State<SellerDashboard> {
                 NavigationDestination(
                   icon: Icon(Icons.dashboard_outlined),
                   selectedIcon: Icon(Icons.dashboard),
-                  label: 'Data Entry',
+                  label: 'Sales Entry',
                 ),
                 NavigationDestination(
                   icon: Icon(Icons.history_outlined),
@@ -110,7 +176,7 @@ class _SellerDashboardState extends State<SellerDashboard> {
 
   Widget _buildBody() {
     if (_selectedIndex == 0) {
-      return _buildDataEntryTab();
+      return _buildSalesEntryTab();
     } else {
       return Center(
         child: Text('Content for tab $_selectedIndex'),
@@ -118,63 +184,101 @@ class _SellerDashboardState extends State<SellerDashboard> {
     }
   }
 
-  Widget _buildDataEntryTab() {
+  Widget _buildSalesEntryTab() {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       children: [
+        // Scrollable content
         Expanded(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final isWide = constraints.maxWidth > 800;
-              
               return SingleChildScrollView(
                 padding: const EdgeInsets.all(16.0),
                 child: Center(
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1200),
+                    constraints: const BoxConstraints(maxWidth: 600),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 16.0),
-                          child: Text(
-                            'Weekly Sales Entry',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                          ),
+                        // Section Header: Sales Entry
+                        _buildSectionHeader(
+                          icon: Icons.receipt_long_outlined,
+                          title: 'Weekly Sales Entry',
+                          subtitle: '${_salesEntries.length} product(s)',
+                          colorScheme: colorScheme,
                         ),
-                        if (isWide)
-                          GridView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 16,
-                              mainAxisSpacing: 16,
-                              mainAxisExtent: 320,
-                            ),
-                            itemCount: _salesEntries.length,
-                            itemBuilder: (context, index) => _buildProductCard(index),
-                          )
-                        else
-                          ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: _salesEntries.length,
-                            itemBuilder: (context, index) => _buildProductCard(index),
-                          ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 16.0),
-                          child: Center(
-                            child: TextButton.icon(
+                        const SizedBox(height: 12),
+
+                        // Dynamic Sales Entry Cards
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: _salesEntries.length,
+                          itemBuilder: (context, index) {
+                            return SalesEntryCard(
+                              key: ValueKey(_salesEntries[index].id),
+                              entry: _salesEntries[index],
+                              index: index,
+                              productSuggestions: _productSuggestions,
+                              categorySuggestions: _categorySuggestions,
+                              onRemove: () => _removeEntry(index),
+                              onDuplicate: () => _duplicateEntry(index),
+                              onChanged: (updated) =>
+                                  _updateEntry(index, updated),
+                            );
+                          },
+                        ),
+
+                        // Add Product Button
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: OutlinedButton.icon(
                               onPressed: _addEntry,
-                              icon: const Icon(Icons.add),
+                              icon: const Icon(Icons.add_rounded),
                               label: const Text('Add Product'),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 24, vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                side: BorderSide(
+                                  color: colorScheme.primary,
+                                  width: 1.5,
+                                ),
+                              ),
                             ),
                           ),
                         ),
+                        const SizedBox(height: 24),
+
+                        // Product Movement Section
+                        _buildSectionHeader(
+                          icon: Icons.local_shipping_outlined,
+                          title: 'Product Movement',
+                          subtitle: 'Weekly inventory',
+                          colorScheme: colorScheme,
+                        ),
+                        const SizedBox(height: 12),
+                        ProductMovementCard(
+                          movement: _productMovement,
+                          onChanged: (updated) {
+                            setState(() {
+                              _productMovement = updated;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Summary Section
+                        SummaryCard(
+                          totalSales: _totalSales,
+                          totalReceived: _totalReceived,
+                          totalBalance: _totalBalance,
+                        ),
+                        const SizedBox(height: 16),
                       ],
                     ),
                   ),
@@ -183,13 +287,24 @@ class _SellerDashboardState extends State<SellerDashboard> {
             },
           ),
         ),
+
+        // Sticky Footer
         Container(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
+            color: colorScheme.surface,
             border: Border(
-              top: BorderSide(color: Theme.of(context).colorScheme.outline),
+              top: BorderSide(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+              ),
             ),
+            boxShadow: [
+              BoxShadow(
+                color: colorScheme.shadow.withValues(alpha: 0.08),
+                blurRadius: 8,
+                offset: const Offset(0, -2),
+              ),
+            ],
           ),
           child: SafeArea(
             child: Center(
@@ -198,23 +313,38 @@ class _SellerDashboardState extends State<SellerDashboard> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton(
+                      child: OutlinedButton.icon(
                         onPressed: () {
-                          // Generate Preview logic
+                          Navigator.pushNamed(context, '/report-preview');
                         },
-                        child: const Text('Preview'),
+                        icon: const Icon(Icons.preview_rounded, size: 18),
+                        label: const Text('Preview Report'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          side: BorderSide(color: colorScheme.primary),
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 12),
                     Expanded(
-                      child: ElevatedButton(
+                      child: FilledButton.icon(
                         onPressed: () {
-                          // Submit logic
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Report Submitted!')),
+                          UiHelpers.showCustomToast(
+                            context,
+                            'Report submitted successfully!',
                           );
                         },
-                        child: const Text('Submit'),
+                        icon: const Icon(Icons.send_rounded, size: 18),
+                        label: const Text('Submit Report'),
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -227,77 +357,37 @@ class _SellerDashboardState extends State<SellerDashboard> {
     );
   }
 
-  Widget _buildProductCard(int entryIndex) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16.0),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
+  Widget _buildSectionHeader({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required ColorScheme colorScheme,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, size: 22, color: colorScheme.primary),
+        const SizedBox(width: 10),
+        Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Product ${entryIndex + 1}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-                if (_salesEntries.length > 1)
-                  IconButton(
-                    icon: const Icon(Icons.close, size: 20, color: Colors.red),
-                    onPressed: () => _removeEntry(entryIndex),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const TextField(
-              decoration: InputDecoration(
-                labelText: 'Product Name',
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
               ),
             ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    decoration: const InputDecoration(
-                      labelText: 'Quantity',
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextField(
-                    decoration: const InputDecoration(
-                      labelText: 'Total Price',
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    decoration: const InputDecoration(
-                      labelText: 'Payment Received',
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-              ],
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 12,
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
-      ),
+      ],
     );
   }
 }
