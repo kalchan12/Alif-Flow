@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:alif_flow/theme/app_theme.dart';
 import 'package:alif_flow/services/auth_service.dart';
 import 'package:alif_flow/widgets/responsive_layout.dart';
 
@@ -139,8 +138,8 @@ class _SellerDashboardState extends State<SellerDashboard> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Padding(
-                          padding: EdgeInsets.only(bottom: 16.0),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 16.0),
                           child: Text(
                             'Weekly Sales Entry',
                             style: TextStyle(
@@ -245,7 +244,7 @@ class _SellerDashboardState extends State<SellerDashboard> {
               children: [
                 Text(
                   'Product ${entryIndex + 1}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
