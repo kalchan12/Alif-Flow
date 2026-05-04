@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:alif_flow/main.dart' show themeProvider;
+import 'package:alif_flow/theme/theme_provider.dart';
 import 'package:alif_flow/services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -188,25 +188,36 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 24),
+                        const SizedBox(height: 32),
                         ElevatedButton(
                           onPressed: _isLoading ? null : _signIn,
                           child: _isLoading 
-                            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white))
+                            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                             : const Text('Sign In'),
                         ),
-                        const SizedBox(height: 16),
-                        OutlinedButton(
-                          onPressed: _isLoading ? null : () {
-                            Navigator.pushNamed(context, '/register');
-                          },
-                          child: const Text('Create Account'),
-                        ),
                         const SizedBox(height: 24),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pushReplacementNamed(context, '/admin_dashboard');
-                          },
-                          child: const Text('Login as Admin (Demo)'),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Don't have an account? ",
+                              style: TextStyle(
+                                color: colorScheme.onSurface.withOpacity(0.6),
+                                fontSize: 14,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: _isLoading ? null : () {
+                                Navigator.pushNamed(context, '/register');
+                              },
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              child: const Text('Sign Up'),
+                            ),
+                          ],
                         ),
                       ],
                     ),
