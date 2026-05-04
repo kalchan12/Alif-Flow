@@ -14,3 +14,6 @@ class ThemeProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
+
+/// Global theme provider instance accessible throughout the app.
+final themeProvider = ThemeProvider();
