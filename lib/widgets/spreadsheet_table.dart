@@ -38,11 +38,11 @@ class SpreadsheetTable extends StatefulWidget {
   final List<SpreadsheetColumn> columns;
   final int rowCount;
   final CellData Function(int row, int col) cellBuilder;
+  final CellData Function(int col)? footerBuilder;
   final void Function(int row, int col, String value) onCellChanged;
   final VoidCallback onAddRow;
   final void Function(int row)? onDeleteRow;
   final bool canDeleteRows;
-  final double frozenColumnWidth;
   final double rowHeight;
 
   const SpreadsheetTable({
@@ -50,11 +50,11 @@ class SpreadsheetTable extends StatefulWidget {
     required this.columns,
     required this.rowCount,
     required this.cellBuilder,
+    this.footerBuilder,
     required this.onCellChanged,
     required this.onAddRow,
     this.onDeleteRow,
     this.canDeleteRows = true,
-    this.frozenColumnWidth = 130,
     this.rowHeight = 46,
   });
 
@@ -65,77 +65,77 @@ class SpreadsheetTable extends StatefulWidget {
 class _SpreadsheetTableState extends State<SpreadsheetTable> {
   final ScrollController _horizontalScrollController = ScrollController();
   final ScrollController _verticalScrollController = ScrollController();
-  final ScrollController _headerHorizontalScrollController = ScrollController();
 
   // Track which cell is focused for highlight
   int? _focusedRow;
   int? _focusedCol;
 
   @override
-  void initState() {
-    super.initState();
-    // Sync horizontal scroll between header and body
-    _horizontalScrollController.addListener(_syncHeaderScroll);
-  }
-
-  void _syncHeaderScroll() {
-    if (_headerHorizontalScrollController.hasClients) {
-      _headerHorizontalScrollController
-          .jumpTo(_horizontalScrollController.offset);
-    }
-  }
-
-  @override
   void dispose() {
-    _horizontalScrollController.removeListener(_syncHeaderScroll);
     _horizontalScrollController.dispose();
     _verticalScrollController.dispose();
-    _headerHorizontalScrollController.dispose();
     super.dispose();
   }
-
-  // Columns after the frozen first column
-  List<SpreadsheetColumn> get _scrollableColumns =>
-      widget.columns.length > 1 ? widget.columns.sublist(1) : [];
 
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final borderColor = colorScheme.outlineVariant.withValues(alpha: 0.4);
+    final borderColor = colorScheme.outlineVariant.withValues(alpha: 0.2);
+
+    final int listCount = widget.rowCount + 1 + (widget.footerBuilder != null ? 1 : 0);
+    final double totalWidth = widget.columns.fold(0.0, (sum, col) => sum + col.width) + (widget.canDeleteRows ? 44.0 : 0.0);
 
     return Container(
       decoration: BoxDecoration(
+        color: colorScheme.surface,
         border: Border.all(color: borderColor),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Sticky Header
-          _buildHeaderRow(colorScheme, borderColor),
-
-          // Data Rows
-          ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: widget.rowCount * widget.rowHeight +
-                  widget.rowHeight, // +1 for add button row
-            ),
-            child: ListView.builder(
-              controller: _verticalScrollController,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: widget.rowCount + 1, // +1 for "Add Row" button
-              itemBuilder: (context, index) {
-                if (index == widget.rowCount) {
-                  return _buildAddRowButton(colorScheme, borderColor);
-                }
-                return _buildDataRow(index, colorScheme, borderColor);
-              },
-            ),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: SingleChildScrollView(
+        controller: _horizontalScrollController,
+        scrollDirection: Axis.horizontal,
+        child: SizedBox(
+          width: totalWidth,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Sticky Header
+              _buildHeaderRow(colorScheme, borderColor),
+
+              // Data Rows
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: listCount * widget.rowHeight,
+                ),
+                child: ListView.builder(
+                  controller: _verticalScrollController,
+                  shrinkWrap: true,
+                  physics: const ClampingScrollPhysics(),
+                  itemCount: listCount,
+                  itemBuilder: (context, index) {
+                    if (index < widget.rowCount) {
+                      return _buildDataRow(index, colorScheme, borderColor);
+                    } else if (index == widget.rowCount) {
+                      return _buildAddRowButton(colorScheme, borderColor);
+                    } else {
+                      return _buildFooterRow(colorScheme, borderColor);
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -144,53 +144,37 @@ class _SpreadsheetTableState extends State<SpreadsheetTable> {
     return Container(
       height: widget.rowHeight,
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+            colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+          ],
+        ),
         border: Border(bottom: BorderSide(color: borderColor)),
       ),
       child: Row(
         children: [
-          // Frozen header cell
-          _buildHeaderCell(
-            widget.columns.first.header,
-            widget.frozenColumnWidth,
-            colorScheme,
-            borderColor,
-            isFirst: true,
-          ),
-
-          // Scrollable header cells
-          Expanded(
-            child: IgnorePointer(
-              child: SingleChildScrollView(
-                controller: _headerHorizontalScrollController,
-                scrollDirection: Axis.horizontal,
-                physics: const NeverScrollableScrollPhysics(),
-                child: Row(
-                  children: [
-                    for (int i = 0; i < _scrollableColumns.length; i++)
-                      _buildHeaderCell(
-                        _scrollableColumns[i].header,
-                        _scrollableColumns[i].width,
-                        colorScheme,
-                        borderColor,
-                        isCalculated: _scrollableColumns[i].isCalculated,
-                      ),
-                    if (widget.canDeleteRows)
-                      SizedBox(
-                        width: 44,
-                        child: Center(
-                          child: Icon(
-                            Icons.more_horiz,
-                            size: 16,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                  ],
+          for (int i = 0; i < widget.columns.length; i++)
+            _buildHeaderCell(
+              widget.columns[i].header,
+              widget.columns[i].width,
+              colorScheme,
+              borderColor,
+              isFirst: i == 0,
+            ),
+          if (widget.canDeleteRows)
+            SizedBox(
+              width: 44,
+              child: Center(
+                child: Icon(
+                  Icons.more_horiz,
+                  size: 16,
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -239,36 +223,64 @@ class _SpreadsheetTableState extends State<SpreadsheetTable> {
       decoration: BoxDecoration(
         color: isEvenRow
             ? colorScheme.surface
-            : colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
+            : colorScheme.surfaceContainerHighest.withValues(alpha: 0.15),
         border: Border(bottom: BorderSide(color: borderColor)),
       ),
       child: Row(
         children: [
-          // Frozen first column cell
-          _buildCell(row, 0, widget.columns.first, widget.frozenColumnWidth,
-              colorScheme, borderColor),
-
-          // Scrollable data cells
-          Expanded(
-            child: SingleChildScrollView(
-              controller:
-                  row == 0 ? _horizontalScrollController : null,
-              scrollDirection: Axis.horizontal,
-              physics: row == 0
-                  ? const ClampingScrollPhysics()
-                  : const NeverScrollableScrollPhysics(),
-              child: Row(
-                children: [
-                  for (int col = 1; col < widget.columns.length; col++)
-                    _buildCell(row, col, widget.columns[col],
-                        widget.columns[col].width, colorScheme, borderColor),
-                  if (widget.canDeleteRows)
-                    _buildDeleteButton(row, colorScheme),
-                ],
-              ),
-            ),
-          ),
+          for (int col = 0; col < widget.columns.length; col++)
+            _buildCell(row, col, widget.columns[col], widget.columns[col].width,
+                colorScheme, borderColor),
+          if (widget.canDeleteRows) _buildDeleteButton(row, colorScheme),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFooterRow(ColorScheme colorScheme, Color borderColor) {
+    return Container(
+      height: widget.rowHeight,
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer.withValues(alpha: 0.2),
+        border: Border(top: BorderSide(color: colorScheme.primary.withValues(alpha: 0.3))),
+      ),
+      child: Row(
+        children: [
+          for (int col = 0; col < widget.columns.length; col++)
+            _buildFooterCell(col, widget.columns[col], colorScheme, borderColor),
+          if (widget.canDeleteRows)
+            SizedBox(width: 44),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFooterCell(
+    int col,
+    SpreadsheetColumn column,
+    ColorScheme colorScheme,
+    Color borderColor,
+  ) {
+    final cellData = widget.footerBuilder!(col);
+
+    return Container(
+      width: column.width,
+      height: widget.rowHeight,
+      decoration: BoxDecoration(
+        border: Border(
+          right: BorderSide(color: borderColor),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      alignment: column.isProductName ? Alignment.centerLeft : Alignment.center,
+      child: Text(
+        cellData.value.isNotEmpty ? cellData.value : cellData.hint,
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w800,
+          color: cellData.textColor ?? colorScheme.primary,
+        ),
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
@@ -408,7 +420,8 @@ class _SpreadsheetTableState extends State<SpreadsheetTable> {
       child: Container(
         height: widget.rowHeight,
         decoration: BoxDecoration(
-          color: colorScheme.primaryContainer.withValues(alpha: 0.08),
+          color: colorScheme.surface,
+          border: Border(bottom: BorderSide(color: borderColor)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

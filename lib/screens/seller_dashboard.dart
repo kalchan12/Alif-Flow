@@ -15,8 +15,18 @@ class _SellerDashboardState extends State<SellerDashboard> {
   int _selectedIndex = 0;
 
   // Sales data
-  final List<SalesEntry> _salesEntries = [SalesEntry()];
-  final List<ProductMovementEntry> _movementEntries = [ProductMovementEntry()];
+  final List<SalesEntry> _salesEntries = [
+    SalesEntry(productName: '5 Litre Soap'),
+    SalesEntry(productName: '2 Litre Soap'),
+    SalesEntry(productName: '1 Litre Soap'),
+    SalesEntry(productName: 'Unbottled Soap'),
+  ];
+  final List<ProductMovementEntry> _movementEntries = [
+    ProductMovementEntry(productName: '5 Litre Soap'),
+    ProductMovementEntry(productName: '2 Litre Soap'),
+    ProductMovementEntry(productName: '1 Litre Soap'),
+    ProductMovementEntry(productName: 'Unbottled Soap'),
+  ];
 
 
   // --- Entry Management ---
@@ -187,7 +197,28 @@ class _SellerDashboardState extends State<SellerDashboard> {
                             SpreadsheetColumn(header: 'Balance', width: 90, isCalculated: true, isNumeric: true, isReadOnly: true),
                           ],
                           rowCount: _salesEntries.length,
-                          frozenColumnWidth: 140,
+                          footerBuilder: (col) {
+                            switch (col) {
+                              case 0:
+                                return const CellData(value: 'TOTAL', hint: '', textColor: null);
+                              case 1:
+                                final sum = _salesEntries.fold<int>(0, (s, e) => s + e.quantitySold);
+                                return CellData(value: sum > 0 ? sum.toString() : '');
+                              case 2:
+                                return const CellData(value: '---');
+                              case 3:
+                                return CellData(value: _totalSales > 0 ? _totalSales.toStringAsFixed(2) : '');
+                              case 4:
+                                return CellData(value: _totalReceived > 0 ? _totalReceived.toStringAsFixed(2) : '');
+                              case 5:
+                                return CellData(
+                                  value: _totalBalance != 0 ? _totalBalance.toStringAsFixed(2) : '',
+                                  textColor: _totalBalance > 0 ? colorScheme.error : (_totalBalance < 0 ? colorScheme.primary : null),
+                                );
+                              default:
+                                return const CellData();
+                            }
+                          },
                           cellBuilder: (row, col) {
                             final entry = _salesEntries[row];
                             switch (col) {
@@ -256,7 +287,26 @@ class _SellerDashboardState extends State<SellerDashboard> {
                             SpreadsheetColumn(header: 'Current', width: 90, isCalculated: true, isNumeric: true, isReadOnly: true),
                           ],
                           rowCount: _movementEntries.length,
-                          frozenColumnWidth: 140,
+                          footerBuilder: (col) {
+                            switch (col) {
+                              case 0:
+                                return const CellData(value: 'TOTAL', hint: '', textColor: null);
+                              case 1:
+                                final sum = _movementEntries.fold<int>(0, (s, e) => s + e.previousStock);
+                                return CellData(value: sum > 0 ? sum.toString() : '');
+                              case 2:
+                                final sum = _movementEntries.fold<int>(0, (s, e) => s + e.productsMoved);
+                                return CellData(value: sum > 0 ? sum.toString() : '');
+                              case 3:
+                                final sum = _movementEntries.fold<int>(0, (s, e) => s + e.newStockAdded);
+                                return CellData(value: sum > 0 ? sum.toString() : '');
+                              case 4:
+                                final sum = _movementEntries.fold<int>(0, (s, e) => s + e.currentStock);
+                                return CellData(value: sum > 0 ? sum.toString() : '');
+                              default:
+                                return const CellData();
+                            }
+                          },
                           cellBuilder: (row, col) {
                             final entry = _movementEntries[row];
                             switch (col) {
@@ -299,23 +349,6 @@ class _SellerDashboardState extends State<SellerDashboard> {
                         ),
                         const SizedBox(height: 32),
 
-                        // Inline Summary Strip
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: colorScheme.primaryContainer.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              _buildSummaryItem('Total Sales', _totalSales, colorScheme),
-                              _buildSummaryItem('Received', _totalReceived, colorScheme),
-                              _buildSummaryItem('Balance', _totalBalance, colorScheme, isBalance: true),
-                            ],
-                          ),
-                        ),
                         const SizedBox(height: 16),
                       ],
                     ),
@@ -422,31 +455,6 @@ class _SellerDashboardState extends State<SellerDashboard> {
     );
   }
 
-  Widget _buildSummaryItem(String label, double value, ColorScheme colorScheme, {bool isBalance = false}) {
-    final color = isBalance && value > 0 ? colorScheme.error : colorScheme.primary;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          value.toStringAsFixed(2),
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-      ],
-    );
-  }
 
   Future<void> _submitReport() async {
     final result = await Navigator.pushNamed(
@@ -461,9 +469,19 @@ class _SellerDashboardState extends State<SellerDashboard> {
     if (result == true) {
       setState(() {
         _salesEntries.clear();
-        _salesEntries.add(SalesEntry());
+        _salesEntries.addAll([
+          SalesEntry(productName: '5 Litre Soap'),
+          SalesEntry(productName: '2 Litre Soap'),
+          SalesEntry(productName: '1 Litre Soap'),
+          SalesEntry(productName: 'Unbottled Soap'),
+        ]);
         _movementEntries.clear();
-        _movementEntries.add(ProductMovementEntry());
+        _movementEntries.addAll([
+          ProductMovementEntry(productName: '5 Litre Soap'),
+          ProductMovementEntry(productName: '2 Litre Soap'),
+          ProductMovementEntry(productName: '1 Litre Soap'),
+          ProductMovementEntry(productName: 'Unbottled Soap'),
+        ]);
       });
     }
   }
