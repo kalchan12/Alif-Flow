@@ -19,7 +19,7 @@ class _ReportPreviewScreenState extends State<ReportPreviewScreen> {
   Widget build(BuildContext context) {
     final arguments = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     final List<SalesEntry> salesEntries = arguments?['salesEntries'] ?? [];
-    final ProductMovement productMovement = arguments?['productMovement'] ?? ProductMovement();
+    final List<ProductMovementEntry> movementEntries = arguments?['movementEntries'] ?? [];
 
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -173,10 +173,7 @@ class _ReportPreviewScreenState extends State<ReportPreviewScreen> {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        _buildMovementRow('Stock Moved Out', productMovement.lastWeekMoved.toString()),
-                        _buildMovementRow('New Arrivals', productMovement.newArrivals.toString()),
-                        const Divider(),
-                        _buildMovementRow('Currently Available', productMovement.currentlyAvailable.toString(), isTotal: true),
+                        _buildMovementTable(context, movementEntries),
                       ],
                     ),
                   ),
@@ -215,7 +212,7 @@ class _ReportPreviewScreenState extends State<ReportPreviewScreen> {
                   child: FilledButton.icon(
                     onPressed: _isSubmitting 
                       ? null 
-                      : () => _showConfirmDialog(context, salesEntries, productMovement, totalSales, totalReceived, totalBalance),
+                      : () => _showConfirmDialog(context, salesEntries, movementEntries, totalSales, totalReceived, totalBalance),
                     icon: _isSubmitting 
                       ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                       : const Icon(Icons.check_circle_outline),
@@ -291,16 +288,37 @@ class _ReportPreviewScreenState extends State<ReportPreviewScreen> {
     );
   }
 
-  Widget _buildMovementRow(String label, String value, {bool isTotal = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: TextStyle(fontWeight: isTotal ? FontWeight.bold : FontWeight.normal)),
-          Text(value, style: TextStyle(fontWeight: FontWeight.bold, color: isTotal ? Colors.blue : null)),
-        ],
-      ),
+  Widget _buildMovementTable(BuildContext context, List<ProductMovementEntry> entries) {
+    if (entries.isEmpty) {
+      return const Center(child: Text('No inventory movement found.'));
+    }
+
+    return Column(
+      children: [
+        Row(
+          children: const [
+            Expanded(flex: 3, child: Text('Product', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+            Expanded(flex: 1, child: Text('Moved', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+            Expanded(flex: 1, child: Text('Added', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+            Expanded(flex: 1, child: Text('Stock', textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+          ],
+        ),
+        const Divider(),
+        ...entries.map((e) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            children: [
+              Expanded(
+                flex: 3, 
+                child: Text(e.productName, style: const TextStyle(fontWeight: FontWeight.w500)),
+              ),
+              Expanded(flex: 1, child: Text(e.productsMoved.toString(), textAlign: TextAlign.center)),
+              Expanded(flex: 1, child: Text(e.newStockAdded.toString(), textAlign: TextAlign.center)),
+              Expanded(flex: 1, child: Text(e.currentStock.toString(), textAlign: TextAlign.right, style: const TextStyle(fontWeight: FontWeight.bold))),
+            ],
+          ),
+        )),
+      ],
     );
   }
 
@@ -333,7 +351,7 @@ class _ReportPreviewScreenState extends State<ReportPreviewScreen> {
   void _showConfirmDialog(
     BuildContext context, 
     List<SalesEntry> salesEntries, 
-    ProductMovement productMovement,
+    List<ProductMovementEntry> movementEntries,
     double totalSales,
     double totalReceived,
     double totalBalance,
@@ -357,7 +375,7 @@ class _ReportPreviewScreenState extends State<ReportPreviewScreen> {
               try {
                 await _reportService.submitWeeklyReport(
                   salesEntries: salesEntries,
-                  productMovement: productMovement,
+                  movementEntries: movementEntries,
                   totalSales: totalSales,
                   totalReceived: totalReceived,
                   totalBalance: totalBalance,

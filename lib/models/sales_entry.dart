@@ -55,3 +55,24 @@ class ProductMovement {
 
   int get currentlyAvailable => manualCurrentStock ?? (newArrivals - lastWeekMoved);
 }
+
+class ProductMovementEntry {
+  final String id;
+  String productName;
+  int previousStock;
+  int productsMoved;
+  int newStockAdded;
+  int? manualCurrentStock; // null = auto-calculate
+
+  ProductMovementEntry({
+    String? id,
+    this.productName = '',
+    this.previousStock = 0,
+    this.productsMoved = 0,
+    this.newStockAdded = 0,
+    this.manualCurrentStock,
+  }) : id = id ?? UniqueKey().toString();
+
+  int get currentStock =>
+      manualCurrentStock ?? (previousStock - productsMoved + newStockAdded);
+}

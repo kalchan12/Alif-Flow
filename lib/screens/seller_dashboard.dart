@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:alif_flow/models/sales_entry.dart';
 import 'package:alif_flow/utils/ui_helpers.dart';
 import 'package:alif_flow/widgets/responsive_layout.dart';
-import 'package:alif_flow/widgets/sales_entry_card.dart';
-import 'package:alif_flow/widgets/product_movement_card.dart';
-import 'package:alif_flow/widgets/summary_card.dart';
+import 'package:alif_flow/widgets/spreadsheet_table.dart';
 
 class SellerDashboard extends StatefulWidget {
   const SellerDashboard({super.key});
@@ -18,31 +16,18 @@ class _SellerDashboardState extends State<SellerDashboard> {
 
   // Sales data
   final List<SalesEntry> _salesEntries = [SalesEntry()];
-  ProductMovement _productMovement = ProductMovement();
+  final List<ProductMovementEntry> _movementEntries = [ProductMovementEntry()];
 
-  // Dynamic product/category suggestions (grow as users type new ones)
-  final List<String> _productSuggestions = [
-    '5 Litre Soap',
-    '2 Litre Soap',
-    '1 Litre Soap',
-    'Unbottled Soap',
-  ];
-  final List<String> _categorySuggestions = [
-    'Liquid Soap',
-    'Bar Soap',
-    'Detergent',
-    'Cleaning Supplies',
-  ];
 
   // --- Entry Management ---
 
-  void _addEntry() {
+  void _addSalesEntry() {
     setState(() {
       _salesEntries.add(SalesEntry());
     });
   }
 
-  void _removeEntry(int index) {
+  void _removeSalesEntry(int index) {
     if (_salesEntries.length > 1) {
       setState(() {
         _salesEntries.removeAt(index);
@@ -50,37 +35,18 @@ class _SellerDashboardState extends State<SellerDashboard> {
     }
   }
 
-  void _duplicateEntry(int index) {
-    final source = _salesEntries[index];
+  void _addMovementEntry() {
     setState(() {
-      _salesEntries.insert(
-        index + 1,
-        SalesEntry(
-          productName: source.productName,
-          category: source.category,
-          quantitySold: source.quantitySold,
-          unitPrice: source.unitPrice,
-          manualTotal: source.manualTotal,
-          amountReceived: source.amountReceived,
-        ),
-      );
+      _movementEntries.add(ProductMovementEntry());
     });
   }
 
-  void _updateEntry(int index, SalesEntry updated) {
-    setState(() {
-      _salesEntries[index] = updated;
-
-      // Auto-add new product/category suggestions
-      if (updated.productName.isNotEmpty &&
-          !_productSuggestions.contains(updated.productName)) {
-        _productSuggestions.add(updated.productName);
-      }
-      if (updated.category.isNotEmpty &&
-          !_categorySuggestions.contains(updated.category)) {
-        _categorySuggestions.add(updated.category);
-      }
-    });
+  void _removeMovementEntry(int index) {
+    if (_movementEntries.length > 1) {
+      setState(() {
+        _movementEntries.removeAt(index);
+      });
+    }
   }
 
   // --- Computed Summary ---
@@ -210,73 +176,145 @@ class _SellerDashboardState extends State<SellerDashboard> {
                         ),
                         const SizedBox(height: 12),
 
-                        // Dynamic Sales Entry Cards
-                        ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: _salesEntries.length,
-                          itemBuilder: (context, index) {
-                            return SalesEntryCard(
-                              key: ValueKey(_salesEntries[index].id),
-                              entry: _salesEntries[index],
-                              index: index,
-                              productSuggestions: _productSuggestions,
-                              categorySuggestions: _categorySuggestions,
-                              onRemove: () => _removeEntry(index),
-                              onDuplicate: () => _duplicateEntry(index),
-                              onChanged: (updated) =>
-                                  _updateEntry(index, updated),
-                            );
+                        // Sales Spreadsheet Table
+                        SpreadsheetTable(
+                          columns: const [
+                            SpreadsheetColumn(header: 'Product Name', width: 140, isProductName: true),
+                            SpreadsheetColumn(header: 'Qty', width: 70, isNumeric: true),
+                            SpreadsheetColumn(header: 'Price', width: 80, isNumeric: true),
+                            SpreadsheetColumn(header: 'Total', width: 90, isCalculated: true, isNumeric: true, isReadOnly: true),
+                            SpreadsheetColumn(header: 'Received', width: 90, isNumeric: true),
+                            SpreadsheetColumn(header: 'Balance', width: 90, isCalculated: true, isNumeric: true, isReadOnly: true),
+                          ],
+                          rowCount: _salesEntries.length,
+                          frozenColumnWidth: 140,
+                          cellBuilder: (row, col) {
+                            final entry = _salesEntries[row];
+                            switch (col) {
+                              case 0:
+                                return CellData(value: entry.productName, hint: 'Product...');
+                              case 1:
+                                return CellData(value: entry.quantitySold > 0 ? entry.quantitySold.toString() : '', hint: '0');
+                              case 2:
+                                return CellData(value: entry.unitPrice > 0 ? entry.unitPrice.toStringAsFixed(2) : '', hint: '0.00');
+                              case 3:
+                                return CellData(value: entry.totalPrice > 0 ? entry.totalPrice.toStringAsFixed(2) : '', hint: '0.00');
+                              case 4:
+                                return CellData(value: entry.amountReceived > 0 ? entry.amountReceived.toStringAsFixed(2) : '', hint: '0.00');
+                              case 5:
+                                final bal = entry.balanceDue;
+                                return CellData(
+                                  value: bal != 0 ? bal.toStringAsFixed(2) : '',
+                                  hint: '0.00',
+                                  textColor: bal > 0 ? colorScheme.error : (bal < 0 ? colorScheme.primary : null),
+                                );
+                              default:
+                                return const CellData();
+                            }
                           },
+                          onCellChanged: (row, col, value) {
+                            setState(() {
+                              final entry = _salesEntries[row];
+                              switch (col) {
+                                case 0:
+                                  entry.productName = value;
+                                  break;
+                                case 1:
+                                  entry.quantitySold = int.tryParse(value) ?? 0;
+                                  break;
+                                case 2:
+                                  entry.unitPrice = double.tryParse(value) ?? 0.0;
+                                  break;
+                                case 4:
+                                  entry.amountReceived = double.tryParse(value) ?? 0.0;
+                                  break;
+                              }
+                            });
+                          },
+                          onAddRow: _addSalesEntry,
+                          onDeleteRow: _removeSalesEntry,
+                          canDeleteRows: true,
                         ),
-
-                        // Add Product Button
-                        Center(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: OutlinedButton.icon(
-                              onPressed: _addEntry,
-                              icon: const Icon(Icons.add_rounded),
-                              label: const Text('Add Product'),
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 24, vertical: 14),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                side: BorderSide(
-                                  color: colorScheme.primary,
-                                  width: 1.5,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 32),
 
                         // Product Movement Section
                         _buildSectionHeader(
                           icon: Icons.local_shipping_outlined,
                           title: 'Product Movement',
-                          subtitle: 'Weekly inventory',
+                          subtitle: '${_movementEntries.length} product(s) inventory',
                           colorScheme: colorScheme,
                         ),
                         const SizedBox(height: 12),
-                        ProductMovementCard(
-                          movement: _productMovement,
-                          onChanged: (updated) {
+                        
+                        // Movement Spreadsheet Table
+                        SpreadsheetTable(
+                          columns: const [
+                            SpreadsheetColumn(header: 'Product Name', width: 140, isProductName: true),
+                            SpreadsheetColumn(header: 'Prev Stock', width: 90, isNumeric: true),
+                            SpreadsheetColumn(header: 'Moved', width: 80, isNumeric: true),
+                            SpreadsheetColumn(header: 'Added', width: 80, isNumeric: true),
+                            SpreadsheetColumn(header: 'Current', width: 90, isCalculated: true, isNumeric: true, isReadOnly: true),
+                          ],
+                          rowCount: _movementEntries.length,
+                          frozenColumnWidth: 140,
+                          cellBuilder: (row, col) {
+                            final entry = _movementEntries[row];
+                            switch (col) {
+                              case 0:
+                                return CellData(value: entry.productName, hint: 'Product...');
+                              case 1:
+                                return CellData(value: entry.previousStock > 0 ? entry.previousStock.toString() : '', hint: '0');
+                              case 2:
+                                return CellData(value: entry.productsMoved > 0 ? entry.productsMoved.toString() : '', hint: '0');
+                              case 3:
+                                return CellData(value: entry.newStockAdded > 0 ? entry.newStockAdded.toString() : '', hint: '0');
+                              case 4:
+                                return CellData(value: entry.currentStock > 0 ? entry.currentStock.toString() : '', hint: '0');
+                              default:
+                                return const CellData();
+                            }
+                          },
+                          onCellChanged: (row, col, value) {
                             setState(() {
-                              _productMovement = updated;
+                              final entry = _movementEntries[row];
+                              switch (col) {
+                                case 0:
+                                  entry.productName = value;
+                                  break;
+                                case 1:
+                                  entry.previousStock = int.tryParse(value) ?? 0;
+                                  break;
+                                case 2:
+                                  entry.productsMoved = int.tryParse(value) ?? 0;
+                                  break;
+                                case 3:
+                                  entry.newStockAdded = int.tryParse(value) ?? 0;
+                                  break;
+                              }
                             });
                           },
+                          onAddRow: _addMovementEntry,
+                          onDeleteRow: _removeMovementEntry,
+                          canDeleteRows: true,
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 32),
 
-                        // Summary Section
-                        SummaryCard(
-                          totalSales: _totalSales,
-                          totalReceived: _totalReceived,
-                          totalBalance: _totalBalance,
+                        // Inline Summary Strip
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: colorScheme.primaryContainer.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _buildSummaryItem('Total Sales', _totalSales, colorScheme),
+                              _buildSummaryItem('Received', _totalReceived, colorScheme),
+                              _buildSummaryItem('Balance', _totalBalance, colorScheme, isBalance: true),
+                            ],
+                          ),
                         ),
                         const SizedBox(height: 16),
                       ],
@@ -384,13 +422,39 @@ class _SellerDashboardState extends State<SellerDashboard> {
     );
   }
 
+  Widget _buildSummaryItem(String label, double value, ColorScheme colorScheme, {bool isBalance = false}) {
+    final color = isBalance && value > 0 ? colorScheme.error : colorScheme.primary;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value.toStringAsFixed(2),
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+      ],
+    );
+  }
+
   Future<void> _submitReport() async {
     final result = await Navigator.pushNamed(
       context, 
       '/report-preview',
       arguments: {
         'salesEntries': _salesEntries,
-        'productMovement': _productMovement,
+        'movementEntries': _movementEntries,
       },
     );
 
@@ -398,7 +462,8 @@ class _SellerDashboardState extends State<SellerDashboard> {
       setState(() {
         _salesEntries.clear();
         _salesEntries.add(SalesEntry());
-        _productMovement = ProductMovement();
+        _movementEntries.clear();
+        _movementEntries.add(ProductMovementEntry());
       });
     }
   }
