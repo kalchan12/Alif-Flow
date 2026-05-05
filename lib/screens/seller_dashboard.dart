@@ -330,29 +330,17 @@ class _SellerDashboardState extends State<SellerDashboard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _buildSectionHeader(
-              icon: icon,
-              title: title,
-              subtitle: '${salesEntries.length} items',
-              colorScheme: colorScheme,
-            ),
-            FilledButton.tonalIcon(
-              onPressed: () => _saveCategoryLocally(categoryKey, salesEntries, movementEntries),
-              icon: const Icon(Icons.save_outlined, size: 18),
-              label: const Text('Update'),
-              style: FilledButton.styleFrom(
-                visualDensity: VisualDensity.compact,
-              ),
-            ),
-          ],
+        _buildSectionHeader(
+          icon: icon,
+          title: title,
+          subtitle: '${salesEntries.length} items',
+          colorScheme: colorScheme,
         ),
         const SizedBox(height: 12),
 
         // Merged Spreadsheet Table
         SpreadsheetTable(
+          onUpdateLocally: () => _saveCategoryLocally(categoryKey, salesEntries, movementEntries),
           columns: const [
             SpreadsheetColumn(header: 'Product Name', width: 140, isProductName: true),
             SpreadsheetColumn(header: 'Qty', width: 70, isNumeric: true),

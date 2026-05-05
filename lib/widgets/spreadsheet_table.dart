@@ -41,6 +41,7 @@ class SpreadsheetTable extends StatefulWidget {
   final CellData Function(int col)? footerBuilder;
   final void Function(int row, int col, String value) onCellChanged;
   final VoidCallback onAddRow;
+  final VoidCallback? onUpdateLocally;
   final void Function(int row)? onDeleteRow;
   final bool canDeleteRows;
   final double rowHeight;
@@ -53,6 +54,7 @@ class SpreadsheetTable extends StatefulWidget {
     this.footerBuilder,
     required this.onCellChanged,
     required this.onAddRow,
+    this.onUpdateLocally,
     this.onDeleteRow,
     this.canDeleteRows = true,
     this.rowHeight = 46,
@@ -415,7 +417,7 @@ class _SpreadsheetTableState extends State<SpreadsheetTable> {
   }
 
   Widget _buildAddRowButton(ColorScheme colorScheme, Color borderColor) {
-    return InkWell(
+    Widget addRowContent = InkWell(
       onTap: widget.onAddRow,
       child: Container(
         height: widget.rowHeight,
@@ -443,6 +445,50 @@ class _SpreadsheetTableState extends State<SpreadsheetTable> {
           ],
         ),
       ),
+    );
+
+    if (widget.onUpdateLocally == null) {
+      return addRowContent;
+    }
+
+    return Row(
+      children: [
+        Expanded(child: addRowContent),
+        Expanded(
+          child: InkWell(
+            onTap: widget.onUpdateLocally,
+            child: Container(
+              height: widget.rowHeight,
+              decoration: BoxDecoration(
+                color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+                border: Border(
+                  bottom: BorderSide(color: borderColor),
+                  left: BorderSide(color: borderColor),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.save_outlined,
+                    size: 18,
+                    color: colorScheme.primary,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Save Draft',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
