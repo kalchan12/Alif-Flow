@@ -8,6 +8,7 @@ import 'package:alif_flow/utils/ui_helpers.dart';
 import 'package:alif_flow/widgets/responsive_layout.dart';
 import 'package:alif_flow/widgets/spreadsheet_table.dart';
 import 'package:alif_flow/screens/pricing_screen.dart';
+import 'package:alif_flow/screens/my_reports_screen.dart';
 
 class SellerDashboard extends StatefulWidget {
   const SellerDashboard({super.key});
@@ -226,6 +227,21 @@ class _SellerDashboardState extends State<SellerDashboard> {
     switch (_selectedIndex) {
       case 0:
         return _buildSalesEntryTab();
+      case 1:
+        return MyReportsScreen(
+          onRegenerate: (data) {
+            // Populate the sales entry tab with regenerated data
+            final salesByCategory = data['salesByCategory'] as Map<String, List<SalesEntry>>;
+            final movementByCategory = data['movementByCategory'] as Map<String, List<ProductMovementEntry>>;
+            setState(() {
+              _salesByCategory.clear();
+              _movementByCategory.clear();
+              _salesByCategory.addAll(salesByCategory);
+              _movementByCategory.addAll(movementByCategory);
+              _selectedIndex = 0; // Switch to Sales Entry tab
+            });
+          },
+        );
       case 2:
         return const PricingScreen();
       default:

@@ -7,6 +7,7 @@ import 'package:alif_flow/screens/seller_dashboard.dart';
 import 'package:alif_flow/screens/admin_dashboard.dart';
 import 'package:alif_flow/screens/splash_screen.dart';
 import 'package:alif_flow/screens/report_preview_screen.dart';
+import 'package:alif_flow/screens/admin_report_detail_screen.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -54,6 +55,7 @@ class AlifFlowApp extends StatelessWidget {
             '/seller_dashboard': (context) => const SellerDashboard(),
             '/admin_dashboard': (context) => const AdminDashboard(),
             '/report-preview': (context) => const ReportPreviewScreen(),
+            '/admin-report-detail': (context) => const AdminReportDetailScreen(),
           },
         );
       },
