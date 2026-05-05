@@ -2,9 +2,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:alif_flow/models/sales_entry.dart';
+import 'package:alif_flow/models/product_price.dart';
+import 'package:alif_flow/services/pricing_service.dart';
 import 'package:alif_flow/utils/ui_helpers.dart';
 import 'package:alif_flow/widgets/responsive_layout.dart';
 import 'package:alif_flow/widgets/spreadsheet_table.dart';
+import 'package:alif_flow/screens/pricing_screen.dart';
 
 class SellerDashboard extends StatefulWidget {
   const SellerDashboard({super.key});
@@ -15,84 +18,118 @@ class SellerDashboard extends StatefulWidget {
 
 class _SellerDashboardState extends State<SellerDashboard> {
   int _selectedIndex = 0;
-
-  // --- Initializers ---
-  List<SalesEntry> _initSoapSales() => [
-    SalesEntry(productName: '5 Litre Soap'),
-    SalesEntry(productName: '2 Litre Soap'),
-    SalesEntry(productName: '1 Litre Soap'),
-    SalesEntry(productName: 'Unbottled Soap'),
-  ];
-  List<ProductMovementEntry> _initSoapMovement() => _initSoapSales()
-      .map((e) => ProductMovementEntry(productName: e.productName)).toList();
-
-  List<SalesEntry> _initSpecialSales() => [
-    SalesEntry(productName: '5 Litre Detergent'),
-    SalesEntry(productName: '2 Litre Detergent'),
-    SalesEntry(productName: '1 Litre Detergent'),
-    SalesEntry(productName: 'Unbottled Detergent'),
-    SalesEntry(productName: 'Varnish 1 Litre'),
-    SalesEntry(productName: 'Kola 3.5'),
-    SalesEntry(productName: '16kg Kola'),
-  ];
-  List<ProductMovementEntry> _initSpecialMovement() => _initSpecialSales()
-      .map((e) => ProductMovementEntry(productName: e.productName)).toList();
-
-  List<SalesEntry> _initPaintSales() => [
-    SalesEntry(productName: 'Wubet 3.5 L unit'),
-    SalesEntry(productName: 'Wubet 2.5 L Packed'),
-    SalesEntry(productName: 'Super 3.5 unit'),
-    SalesEntry(productName: 'Super 3.5 packed'),
-    SalesEntry(productName: 'Super 20kg'),
-    SalesEntry(productName: '200 ml bar soap'),
-  ];
-  List<ProductMovementEntry> _initPaintMovement() => _initPaintSales()
-      .map((e) => ProductMovementEntry(productName: e.productName)).toList();
+  final PricingService _pricingService = PricingService();
 
   // --- State Variables ---
   bool _isLoading = true;
-  late List<SalesEntry> _soapSales;
-  late List<ProductMovementEntry> _soapMovement;
-  late List<SalesEntry> _specialSales;
-  late List<ProductMovementEntry> _specialMovement;
-  late List<SalesEntry> _paintSales;
-  late List<ProductMovementEntry> _paintMovement;
+  List<ProductPrice> _allProducts = [];
+  Map<String, List<ProductPrice>> _productsByCategory = {};
+
+  // Sales & movement data per category
+  final Map<String, List<SalesEntry>> _salesByCategory = {};
+  final Map<String, List<ProductMovementEntry>> _movementByCategory = {};
+
+  // Category display config
+  final Map<String, String> _categoryDisplayNames = {
+    'soap': 'Weekly Soap Sales',
+    'special': 'Weekly Special Products',
+    'paint': 'Weekly Paint Sales',
+  };
+  final Map<String, IconData> _categoryIcons = {
+    'soap': Icons.clean_hands_outlined,
+    'special': Icons.star_border_rounded,
+    'paint': Icons.format_paint_outlined,
+  };
 
   @override
   void initState() {
     super.initState();
-    _loadSavedData();
+    _loadData();
   }
 
-  Future<void> _loadSavedData() async {
-    final prefs = await SharedPreferences.getInstance();
-    
-    // Helper to load list
-    List<T> loadList<T>(String key, T Function(Map<String, dynamic>) fromJson, List<T> Function() defaultInit) {
-      final String? jsonStr = prefs.getString(key);
-      if (jsonStr != null) {
-        final List<dynamic> jsonList = jsonDecode(jsonStr);
-        return jsonList.map((e) => fromJson(e as Map<String, dynamic>)).toList();
+  /// Load products from Supabase, then load cached sales/movement data.
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+
+    try {
+      // 1. Fetch products from database
+      _productsByCategory = await _pricingService.fetchProductsByCategory();
+      _allProducts = _productsByCategory.values.expand((list) => list).toList();
+
+      // 2. Load cached sales/movement data or initialize from products
+      final prefs = await SharedPreferences.getInstance();
+
+      for (final category in _productsByCategory.keys) {
+        final products = _productsByCategory[category]!;
+
+        // Try loading cached sales
+        final salesJson = prefs.getString('${category}Sales');
+        if (salesJson != null) {
+          final List<dynamic> list = jsonDecode(salesJson);
+          _salesByCategory[category] = list
+              .map((e) => SalesEntry.fromJson(e as Map<String, dynamic>))
+              .toList();
+        } else {
+          // Initialize from product catalog
+          _salesByCategory[category] = products
+              .map((p) => SalesEntry(
+                    productName: p.productName,
+                    category: p.category,
+                    unitPrice: p.unitPrice,
+                  ))
+              .toList();
+        }
+
+        // Try loading cached movement
+        final movementJson = prefs.getString('${category}Movement');
+        if (movementJson != null) {
+          final List<dynamic> list = jsonDecode(movementJson);
+          _movementByCategory[category] = list
+              .map((e) => ProductMovementEntry.fromJson(e as Map<String, dynamic>))
+              .toList();
+        } else {
+          _movementByCategory[category] = products
+              .map((p) => ProductMovementEntry(productName: p.productName))
+              .toList();
+        }
+
+        // Always sync prices from database to sales entries
+        _syncPricesForCategory(category);
       }
-      return defaultInit();
+    } catch (e) {
+      debugPrint('Error loading data: $e');
+      // If fetch fails, try to use whatever cached data we have
     }
 
-    setState(() {
-      _soapSales = loadList('soapSales', SalesEntry.fromJson, _initSoapSales);
-      _soapMovement = loadList('soapMovement', ProductMovementEntry.fromJson, _initSoapMovement);
-      _specialSales = loadList('specialSales', SalesEntry.fromJson, _initSpecialSales);
-      _specialMovement = loadList('specialMovement', ProductMovementEntry.fromJson, _initSpecialMovement);
-      _paintSales = loadList('paintSales', SalesEntry.fromJson, _initPaintSales);
-      _paintMovement = loadList('paintMovement', ProductMovementEntry.fromJson, _initPaintMovement);
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
   }
 
-  Future<void> _saveCategoryLocally(String categoryKey, List<SalesEntry> sales, List<ProductMovementEntry> movement) async {
+  /// Sync unit prices from the product catalog to sales entries.
+  void _syncPricesForCategory(String category) {
+    final sales = _salesByCategory[category];
+    if (sales == null) return;
+
+    for (final entry in sales) {
+      final price = _pricingService.getPriceForProduct(entry.productName, _allProducts);
+      if (price > 0) {
+        entry.unitPrice = price;
+      }
+    }
+  }
+
+  Future<void> _saveCategoryLocally(String categoryKey) async {
+    final sales = _salesByCategory[categoryKey];
+    final movement = _movementByCategory[categoryKey];
+    if (sales == null || movement == null) return;
+
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('${categoryKey}Sales', jsonEncode(sales.map((e) => e.toJson()).toList()));
-    await prefs.setString('${categoryKey}Movement', jsonEncode(movement.map((e) => e.toJson()).toList()));
-    
+    await prefs.setString(
+        '${categoryKey}Sales', jsonEncode(sales.map((e) => e.toJson()).toList()));
+    await prefs.setString('${categoryKey}Movement',
+        jsonEncode(movement.map((e) => e.toJson()).toList()));
+
     if (mounted) {
       UiHelpers.showCustomToast(
         context,
@@ -141,9 +178,9 @@ class _SellerDashboardState extends State<SellerDashboard> {
                   label: Text('History'),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.person_outline),
-                  selectedIcon: Icon(Icons.person),
-                  label: Text('Profile'),
+                  icon: Icon(Icons.attach_money_rounded),
+                  selectedIcon: Icon(Icons.attach_money_rounded),
+                  label: Text('Pricing'),
                 ),
               ],
             ),
@@ -172,9 +209,9 @@ class _SellerDashboardState extends State<SellerDashboard> {
                   label: 'History',
                 ),
                 NavigationDestination(
-                  icon: Icon(Icons.person_outline),
-                  selectedIcon: Icon(Icons.person),
-                  label: 'Profile',
+                  icon: Icon(Icons.attach_money_rounded),
+                  selectedIcon: Icon(Icons.attach_money_rounded),
+                  label: 'Pricing',
                 ),
               ],
             )
@@ -186,17 +223,21 @@ class _SellerDashboardState extends State<SellerDashboard> {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    if (_selectedIndex == 0) {
-      return _buildSalesEntryTab();
-    } else {
-      return Center(
-        child: Text('Content for tab $_selectedIndex'),
-      );
+    switch (_selectedIndex) {
+      case 0:
+        return _buildSalesEntryTab();
+      case 2:
+        return const PricingScreen();
+      default:
+        return Center(
+          child: Text('Content for tab $_selectedIndex'),
+        );
     }
   }
 
   Widget _buildSalesEntryTab() {
     final colorScheme = Theme.of(context).colorScheme;
+    final categories = _productsByCategory.keys.toList();
 
     return Column(
       children: [
@@ -212,34 +253,17 @@ class _SellerDashboardState extends State<SellerDashboard> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildCategorySection(
-                          title: 'Weekly Soap Sales',
-                          categoryKey: 'soap',
-                          icon: Icons.clean_hands_outlined,
-                          salesEntries: _soapSales,
-                          movementEntries: _soapMovement,
-                          colorScheme: colorScheme,
-                        ),
-                        const SizedBox(height: 48),
-                        
-                        _buildCategorySection(
-                          title: 'Weekly Special Products',
-                          categoryKey: 'special',
-                          icon: Icons.star_border_rounded,
-                          salesEntries: _specialSales,
-                          movementEntries: _specialMovement,
-                          colorScheme: colorScheme,
-                        ),
-                        const SizedBox(height: 48),
-                        
-                        _buildCategorySection(
-                          title: 'Weekly Paint Sales',
-                          categoryKey: 'paint',
-                          icon: Icons.format_paint_outlined,
-                          salesEntries: _paintSales,
-                          movementEntries: _paintMovement,
-                          colorScheme: colorScheme,
-                        ),
+                        for (int i = 0; i < categories.length; i++) ...[
+                          _buildCategorySection(
+                            title: _categoryDisplayNames[categories[i]] ?? categories[i],
+                            categoryKey: categories[i],
+                            icon: _categoryIcons[categories[i]] ?? Icons.category,
+                            salesEntries: _salesByCategory[categories[i]]!,
+                            movementEntries: _movementByCategory[categories[i]]!,
+                            colorScheme: colorScheme,
+                          ),
+                          if (i < categories.length - 1) const SizedBox(height: 48),
+                        ],
                         const SizedBox(height: 24),
                       ],
                     ),
@@ -320,8 +344,10 @@ class _SellerDashboardState extends State<SellerDashboard> {
     required List<ProductMovementEntry> movementEntries,
     required ColorScheme colorScheme,
   }) {
-    final double totalSales = salesEntries.fold(0.0, (s, e) => s + e.totalPrice);
-    final double totalReceived = salesEntries.fold(0.0, (s, e) => s + e.amountReceived);
+    final double totalSales =
+        salesEntries.fold(0.0, (s, e) => s + e.totalPrice);
+    final double totalReceived =
+        salesEntries.fold(0.0, (s, e) => s + e.amountReceived);
     final double totalBalance = totalSales - totalReceived;
 
     return Column(
@@ -337,69 +363,155 @@ class _SellerDashboardState extends State<SellerDashboard> {
 
         // Merged Spreadsheet Table
         SpreadsheetTable(
-          onUpdateLocally: () => _saveCategoryLocally(categoryKey, salesEntries, movementEntries),
+          onUpdateLocally: () => _saveCategoryLocally(categoryKey),
           columns: const [
-            SpreadsheetColumn(header: 'Product Name', width: 140, isProductName: true),
+            SpreadsheetColumn(
+                header: 'Product Name', width: 140, isProductName: true, isReadOnly: true),
             SpreadsheetColumn(header: 'Qty', width: 70, isNumeric: true),
-            SpreadsheetColumn(header: 'Price', width: 80, isNumeric: true),
-            SpreadsheetColumn(header: 'Total Sale', width: 90, isCalculated: true, isNumeric: true, isReadOnly: true),
+            SpreadsheetColumn(
+                header: 'Price',
+                width: 80,
+                isNumeric: true,
+                isReadOnly: true,
+                isCalculated: true),
+            SpreadsheetColumn(
+                header: 'Total Sale',
+                width: 90,
+                isCalculated: true,
+                isNumeric: true,
+                isReadOnly: true),
             SpreadsheetColumn(header: 'Received', width: 90, isNumeric: true),
-            SpreadsheetColumn(header: 'Balance', width: 90, isCalculated: true, isNumeric: true, isReadOnly: true),
+            SpreadsheetColumn(
+                header: 'Balance',
+                width: 90,
+                isCalculated: true,
+                isNumeric: true,
+                isReadOnly: true),
             SpreadsheetColumn(header: 'Prev Stock', width: 90, isNumeric: true),
             SpreadsheetColumn(header: 'Moved', width: 80, isNumeric: true),
             SpreadsheetColumn(header: 'Added', width: 80, isNumeric: true),
-            SpreadsheetColumn(header: 'Current Stock', width: 90, isCalculated: true, isNumeric: true, isReadOnly: true),
+            SpreadsheetColumn(
+                header: 'Current Stock',
+                width: 90,
+                isCalculated: true,
+                isNumeric: true,
+                isReadOnly: true),
           ],
           rowCount: salesEntries.length,
           footerBuilder: (col) {
             switch (col) {
-              case 0: return const CellData(value: 'TOTAL', hint: '', textColor: null);
+              case 0:
+                return const CellData(value: 'TOTAL', hint: '', textColor: null);
               case 1:
-                final sum = salesEntries.fold<int>(0, (s, e) => s + e.quantitySold);
+                final sum =
+                    salesEntries.fold<int>(0, (s, e) => s + e.quantitySold);
                 return CellData(value: sum > 0 ? sum.toString() : '');
-              case 2: return const CellData(value: '---');
-              case 3: return CellData(value: totalSales > 0 ? totalSales.toStringAsFixed(2) : '');
-              case 4: return CellData(value: totalReceived > 0 ? totalReceived.toStringAsFixed(2) : '');
-              case 5: return CellData(
-                  value: totalBalance != 0 ? totalBalance.toStringAsFixed(2) : '',
-                  textColor: totalBalance > 0 ? colorScheme.error : (totalBalance < 0 ? colorScheme.primary : null),
+              case 2:
+                return const CellData(value: '---');
+              case 3:
+                return CellData(
+                    value:
+                        totalSales > 0 ? totalSales.toStringAsFixed(2) : '');
+              case 4:
+                return CellData(
+                    value: totalReceived > 0
+                        ? totalReceived.toStringAsFixed(2)
+                        : '');
+              case 5:
+                return CellData(
+                  value: totalBalance != 0
+                      ? totalBalance.toStringAsFixed(2)
+                      : '',
+                  textColor: totalBalance > 0
+                      ? colorScheme.error
+                      : (totalBalance < 0 ? colorScheme.primary : null),
                 );
               case 6:
-                final sum = movementEntries.fold<int>(0, (s, e) => s + e.previousStock);
+                final sum = movementEntries.fold<int>(
+                    0, (s, e) => s + e.previousStock);
                 return CellData(value: sum > 0 ? sum.toString() : '');
               case 7:
-                final sum = movementEntries.fold<int>(0, (s, e) => s + e.productsMoved);
+                final sum = movementEntries.fold<int>(
+                    0, (s, e) => s + e.productsMoved);
                 return CellData(value: sum > 0 ? sum.toString() : '');
               case 8:
-                final sum = movementEntries.fold<int>(0, (s, e) => s + e.newStockAdded);
+                final sum = movementEntries.fold<int>(
+                    0, (s, e) => s + e.newStockAdded);
                 return CellData(value: sum > 0 ? sum.toString() : '');
               case 9:
-                final sum = movementEntries.fold<int>(0, (s, e) => s + e.currentStock);
+                final sum = movementEntries.fold<int>(
+                    0, (s, e) => s + e.currentStock);
                 return CellData(value: sum > 0 ? sum.toString() : '');
-              default: return const CellData();
+              default:
+                return const CellData();
             }
           },
           cellBuilder: (row, col) {
             final sales = salesEntries[row];
             final movement = movementEntries[row];
             switch (col) {
-              case 0: return CellData(value: sales.productName, hint: 'Product...');
-              case 1: return CellData(value: sales.quantitySold > 0 ? sales.quantitySold.toString() : '', hint: '0');
-              case 2: return CellData(value: sales.unitPrice > 0 ? sales.unitPrice.toStringAsFixed(2) : '', hint: '0.00');
-              case 3: return CellData(value: sales.totalPrice > 0 ? sales.totalPrice.toStringAsFixed(2) : '', hint: '0.00');
-              case 4: return CellData(value: sales.amountReceived > 0 ? sales.amountReceived.toStringAsFixed(2) : '', hint: '0.00');
+              case 0:
+                return CellData(
+                    value: sales.productName, hint: 'Product...');
+              case 1:
+                return CellData(
+                    value: sales.quantitySold > 0
+                        ? sales.quantitySold.toString()
+                        : '',
+                    hint: '0');
+              case 2:
+                return CellData(
+                    value: sales.unitPrice > 0
+                        ? sales.unitPrice.toStringAsFixed(2)
+                        : '',
+                    hint: '0.00');
+              case 3:
+                return CellData(
+                    value: sales.totalPrice > 0
+                        ? sales.totalPrice.toStringAsFixed(2)
+                        : '',
+                    hint: '0.00');
+              case 4:
+                return CellData(
+                    value: sales.amountReceived > 0
+                        ? sales.amountReceived.toStringAsFixed(2)
+                        : '',
+                    hint: '0.00');
               case 5:
                 final bal = sales.balanceDue;
                 return CellData(
                   value: bal != 0 ? bal.toStringAsFixed(2) : '',
                   hint: '0.00',
-                  textColor: bal > 0 ? colorScheme.error : (bal < 0 ? colorScheme.primary : null),
+                  textColor: bal > 0
+                      ? colorScheme.error
+                      : (bal < 0 ? colorScheme.primary : null),
                 );
-              case 6: return CellData(value: movement.previousStock > 0 ? movement.previousStock.toString() : '', hint: '0');
-              case 7: return CellData(value: movement.productsMoved > 0 ? movement.productsMoved.toString() : '', hint: '0');
-              case 8: return CellData(value: movement.newStockAdded > 0 ? movement.newStockAdded.toString() : '', hint: '0');
-              case 9: return CellData(value: movement.currentStock > 0 ? movement.currentStock.toString() : '', hint: '0');
-              default: return const CellData();
+              case 6:
+                return CellData(
+                    value: movement.previousStock > 0
+                        ? movement.previousStock.toString()
+                        : '',
+                    hint: '0');
+              case 7:
+                return CellData(
+                    value: movement.productsMoved > 0
+                        ? movement.productsMoved.toString()
+                        : '',
+                    hint: '0');
+              case 8:
+                return CellData(
+                    value: movement.newStockAdded > 0
+                        ? movement.newStockAdded.toString()
+                        : '',
+                    hint: '0');
+              case 9:
+                return CellData(
+                    value: movement.currentStock > 0
+                        ? movement.currentStock.toString()
+                        : '',
+                    hint: '0');
+              default:
+                return const CellData();
             }
           },
           onCellChanged: (row, col, value) {
@@ -407,34 +519,44 @@ class _SellerDashboardState extends State<SellerDashboard> {
               final sales = salesEntries[row];
               final movement = movementEntries[row];
               switch (col) {
-                case 0: 
-                  sales.productName = value; 
-                  movement.productName = value;
+                // col 0 (Product Name) is read-only
+                case 1:
+                  sales.quantitySold = int.tryParse(value) ?? 0;
                   break;
-                case 1: sales.quantitySold = int.tryParse(value) ?? 0; break;
-                case 2: sales.unitPrice = double.tryParse(value) ?? 0.0; break;
-                case 4: sales.amountReceived = double.tryParse(value) ?? 0.0; break;
-                case 6: movement.previousStock = int.tryParse(value) ?? 0; break;
-                case 7: movement.productsMoved = int.tryParse(value) ?? 0; break;
-                case 8: movement.newStockAdded = int.tryParse(value) ?? 0; break;
+                // col 2 (Price) is read-only — auto-filled from pricing
+                // col 3 (Total Sale) is calculated
+                case 4:
+                  sales.amountReceived = double.tryParse(value) ?? 0.0;
+                  break;
+                // col 5 (Balance) is calculated
+                case 6:
+                  movement.previousStock = int.tryParse(value) ?? 0;
+                  break;
+                case 7:
+                  movement.productsMoved = int.tryParse(value) ?? 0;
+                  break;
+                case 8:
+                  movement.newStockAdded = int.tryParse(value) ?? 0;
+                  break;
+                // col 9 (Current Stock) is calculated
               }
             });
           },
           onAddRow: () {
-            setState(() {
-              salesEntries.add(SalesEntry());
-              movementEntries.add(ProductMovementEntry());
-            });
+            // Not allowing add row since products come from database
+            UiHelpers.showCustomToast(
+              context,
+              'Products are managed from the Pricing tab.',
+            );
           },
           onDeleteRow: (index) {
-            if (salesEntries.length > 1) {
-              setState(() {
-                salesEntries.removeAt(index);
-                movementEntries.removeAt(index);
-              });
-            }
+            // Not allowing delete since products come from database
+            UiHelpers.showCustomToast(
+              context,
+              'Products are managed from the Pricing tab.',
+            );
           },
-          canDeleteRows: true,
+          canDeleteRows: false,
         ),
       ],
     );
@@ -482,11 +604,16 @@ class _SellerDashboardState extends State<SellerDashboard> {
   }
 
   Future<void> _submitReport() async {
-    final allSales = [..._soapSales, ..._specialSales, ..._paintSales];
-    final allMovement = [..._soapMovement, ..._specialMovement, ..._paintMovement];
+    final allSales = <SalesEntry>[];
+    final allMovement = <ProductMovementEntry>[];
+
+    for (final category in _salesByCategory.keys) {
+      allSales.addAll(_salesByCategory[category]!);
+      allMovement.addAll(_movementByCategory[category]!);
+    }
 
     final result = await Navigator.pushNamed(
-      context, 
+      context,
       '/report-preview',
       arguments: {
         'salesEntries': allSales,
@@ -495,13 +622,17 @@ class _SellerDashboardState extends State<SellerDashboard> {
     );
 
     if (result == true) {
+      // Admin approved — clear the cache and reload fresh
       final prefs = await SharedPreferences.getInstance();
-      await prefs.clear(); // Clear all drafts
+      for (final category in _productsByCategory.keys) {
+        await prefs.remove('${category}Sales');
+        await prefs.remove('${category}Movement');
+      }
 
       setState(() {
-         _isLoading = true;
+        _isLoading = true;
       });
-      await _loadSavedData();
+      await _loadData();
     }
   }
 }
