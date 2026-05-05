@@ -297,166 +297,102 @@ class _SellerDashboardState extends State<SellerDashboard> {
         ),
         const SizedBox(height: 12),
 
-        // Sales Spreadsheet Table
+        // Merged Spreadsheet Table
         SpreadsheetTable(
           columns: const [
             SpreadsheetColumn(header: 'Product Name', width: 140, isProductName: true),
             SpreadsheetColumn(header: 'Qty', width: 70, isNumeric: true),
             SpreadsheetColumn(header: 'Price', width: 80, isNumeric: true),
-            SpreadsheetColumn(header: 'Total', width: 90, isCalculated: true, isNumeric: true, isReadOnly: true),
+            SpreadsheetColumn(header: 'Total Sale', width: 90, isCalculated: true, isNumeric: true, isReadOnly: true),
             SpreadsheetColumn(header: 'Received', width: 90, isNumeric: true),
             SpreadsheetColumn(header: 'Balance', width: 90, isCalculated: true, isNumeric: true, isReadOnly: true),
+            SpreadsheetColumn(header: 'Prev Stock', width: 90, isNumeric: true),
+            SpreadsheetColumn(header: 'Moved', width: 80, isNumeric: true),
+            SpreadsheetColumn(header: 'Added', width: 80, isNumeric: true),
+            SpreadsheetColumn(header: 'Current Stock', width: 90, isCalculated: true, isNumeric: true, isReadOnly: true),
           ],
           rowCount: salesEntries.length,
           footerBuilder: (col) {
             switch (col) {
-              case 0:
-                return const CellData(value: 'TOTAL', hint: '', textColor: null);
+              case 0: return const CellData(value: 'TOTAL', hint: '', textColor: null);
               case 1:
                 final sum = salesEntries.fold<int>(0, (s, e) => s + e.quantitySold);
                 return CellData(value: sum > 0 ? sum.toString() : '');
-              case 2:
-                return const CellData(value: '---');
-              case 3:
-                return CellData(value: totalSales > 0 ? totalSales.toStringAsFixed(2) : '');
-              case 4:
-                return CellData(value: totalReceived > 0 ? totalReceived.toStringAsFixed(2) : '');
-              case 5:
-                return CellData(
+              case 2: return const CellData(value: '---');
+              case 3: return CellData(value: totalSales > 0 ? totalSales.toStringAsFixed(2) : '');
+              case 4: return CellData(value: totalReceived > 0 ? totalReceived.toStringAsFixed(2) : '');
+              case 5: return CellData(
                   value: totalBalance != 0 ? totalBalance.toStringAsFixed(2) : '',
                   textColor: totalBalance > 0 ? colorScheme.error : (totalBalance < 0 ? colorScheme.primary : null),
                 );
-              default:
-                return const CellData();
+              case 6:
+                final sum = movementEntries.fold<int>(0, (s, e) => s + e.previousStock);
+                return CellData(value: sum > 0 ? sum.toString() : '');
+              case 7:
+                final sum = movementEntries.fold<int>(0, (s, e) => s + e.productsMoved);
+                return CellData(value: sum > 0 ? sum.toString() : '');
+              case 8:
+                final sum = movementEntries.fold<int>(0, (s, e) => s + e.newStockAdded);
+                return CellData(value: sum > 0 ? sum.toString() : '');
+              case 9:
+                final sum = movementEntries.fold<int>(0, (s, e) => s + e.currentStock);
+                return CellData(value: sum > 0 ? sum.toString() : '');
+              default: return const CellData();
             }
           },
           cellBuilder: (row, col) {
-            final entry = salesEntries[row];
+            final sales = salesEntries[row];
+            final movement = movementEntries[row];
             switch (col) {
-              case 0:
-                return CellData(value: entry.productName, hint: 'Product...');
-              case 1:
-                return CellData(value: entry.quantitySold > 0 ? entry.quantitySold.toString() : '', hint: '0');
-              case 2:
-                return CellData(value: entry.unitPrice > 0 ? entry.unitPrice.toStringAsFixed(2) : '', hint: '0.00');
-              case 3:
-                return CellData(value: entry.totalPrice > 0 ? entry.totalPrice.toStringAsFixed(2) : '', hint: '0.00');
-              case 4:
-                return CellData(value: entry.amountReceived > 0 ? entry.amountReceived.toStringAsFixed(2) : '', hint: '0.00');
+              case 0: return CellData(value: sales.productName, hint: 'Product...');
+              case 1: return CellData(value: sales.quantitySold > 0 ? sales.quantitySold.toString() : '', hint: '0');
+              case 2: return CellData(value: sales.unitPrice > 0 ? sales.unitPrice.toStringAsFixed(2) : '', hint: '0.00');
+              case 3: return CellData(value: sales.totalPrice > 0 ? sales.totalPrice.toStringAsFixed(2) : '', hint: '0.00');
+              case 4: return CellData(value: sales.amountReceived > 0 ? sales.amountReceived.toStringAsFixed(2) : '', hint: '0.00');
               case 5:
-                final bal = entry.balanceDue;
+                final bal = sales.balanceDue;
                 return CellData(
                   value: bal != 0 ? bal.toStringAsFixed(2) : '',
                   hint: '0.00',
                   textColor: bal > 0 ? colorScheme.error : (bal < 0 ? colorScheme.primary : null),
                 );
-              default:
-                return const CellData();
+              case 6: return CellData(value: movement.previousStock > 0 ? movement.previousStock.toString() : '', hint: '0');
+              case 7: return CellData(value: movement.productsMoved > 0 ? movement.productsMoved.toString() : '', hint: '0');
+              case 8: return CellData(value: movement.newStockAdded > 0 ? movement.newStockAdded.toString() : '', hint: '0');
+              case 9: return CellData(value: movement.currentStock > 0 ? movement.currentStock.toString() : '', hint: '0');
+              default: return const CellData();
             }
           },
           onCellChanged: (row, col, value) {
             setState(() {
-              final entry = salesEntries[row];
+              final sales = salesEntries[row];
+              final movement = movementEntries[row];
               switch (col) {
-                case 0:
-                  entry.productName = value;
+                case 0: 
+                  sales.productName = value; 
+                  movement.productName = value;
                   break;
-                case 1:
-                  entry.quantitySold = int.tryParse(value) ?? 0;
-                  break;
-                case 2:
-                  entry.unitPrice = double.tryParse(value) ?? 0.0;
-                  break;
-                case 4:
-                  entry.amountReceived = double.tryParse(value) ?? 0.0;
-                  break;
+                case 1: sales.quantitySold = int.tryParse(value) ?? 0; break;
+                case 2: sales.unitPrice = double.tryParse(value) ?? 0.0; break;
+                case 4: sales.amountReceived = double.tryParse(value) ?? 0.0; break;
+                case 6: movement.previousStock = int.tryParse(value) ?? 0; break;
+                case 7: movement.productsMoved = int.tryParse(value) ?? 0; break;
+                case 8: movement.newStockAdded = int.tryParse(value) ?? 0; break;
               }
             });
           },
           onAddRow: () {
-            setState(() => salesEntries.add(SalesEntry()));
+            setState(() {
+              salesEntries.add(SalesEntry());
+              movementEntries.add(ProductMovementEntry());
+            });
           },
           onDeleteRow: (index) {
             if (salesEntries.length > 1) {
-              setState(() => salesEntries.removeAt(index));
-            }
-          },
-          canDeleteRows: true,
-        ),
-        const SizedBox(height: 24),
-
-        // Movement Spreadsheet Table
-        SpreadsheetTable(
-          columns: const [
-            SpreadsheetColumn(header: 'Product Name', width: 140, isProductName: true),
-            SpreadsheetColumn(header: 'Prev Stock', width: 90, isNumeric: true),
-            SpreadsheetColumn(header: 'Moved', width: 80, isNumeric: true),
-            SpreadsheetColumn(header: 'Added', width: 80, isNumeric: true),
-            SpreadsheetColumn(header: 'Current', width: 90, isCalculated: true, isNumeric: true, isReadOnly: true),
-          ],
-          rowCount: movementEntries.length,
-          footerBuilder: (col) {
-            switch (col) {
-              case 0:
-                return const CellData(value: 'TOTAL', hint: '', textColor: null);
-              case 1:
-                final sum = movementEntries.fold<int>(0, (s, e) => s + e.previousStock);
-                return CellData(value: sum > 0 ? sum.toString() : '');
-              case 2:
-                final sum = movementEntries.fold<int>(0, (s, e) => s + e.productsMoved);
-                return CellData(value: sum > 0 ? sum.toString() : '');
-              case 3:
-                final sum = movementEntries.fold<int>(0, (s, e) => s + e.newStockAdded);
-                return CellData(value: sum > 0 ? sum.toString() : '');
-              case 4:
-                final sum = movementEntries.fold<int>(0, (s, e) => s + e.currentStock);
-                return CellData(value: sum > 0 ? sum.toString() : '');
-              default:
-                return const CellData();
-            }
-          },
-          cellBuilder: (row, col) {
-            final entry = movementEntries[row];
-            switch (col) {
-              case 0:
-                return CellData(value: entry.productName, hint: 'Product...');
-              case 1:
-                return CellData(value: entry.previousStock > 0 ? entry.previousStock.toString() : '', hint: '0');
-              case 2:
-                return CellData(value: entry.productsMoved > 0 ? entry.productsMoved.toString() : '', hint: '0');
-              case 3:
-                return CellData(value: entry.newStockAdded > 0 ? entry.newStockAdded.toString() : '', hint: '0');
-              case 4:
-                return CellData(value: entry.currentStock > 0 ? entry.currentStock.toString() : '', hint: '0');
-              default:
-                return const CellData();
-            }
-          },
-          onCellChanged: (row, col, value) {
-            setState(() {
-              final entry = movementEntries[row];
-              switch (col) {
-                case 0:
-                  entry.productName = value;
-                  break;
-                case 1:
-                  entry.previousStock = int.tryParse(value) ?? 0;
-                  break;
-                case 2:
-                  entry.productsMoved = int.tryParse(value) ?? 0;
-                  break;
-                case 3:
-                  entry.newStockAdded = int.tryParse(value) ?? 0;
-                  break;
-              }
-            });
-          },
-          onAddRow: () {
-             setState(() => movementEntries.add(ProductMovementEntry()));
-          },
-          onDeleteRow: (index) {
-            if (movementEntries.length > 1) {
-              setState(() => movementEntries.removeAt(index));
+              setState(() {
+                salesEntries.removeAt(index);
+                movementEntries.removeAt(index);
+              });
             }
           },
           canDeleteRows: true,
