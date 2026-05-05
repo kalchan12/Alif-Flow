@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS weekly_reports (
   status TEXT NOT NULL DEFAULT 'submitted',  -- 'submitted', 'approved', 'rejected'
   approved_by UUID REFERENCES auth.users(id),
   approved_at TIMESTAMPTZ,
+  rejection_reason TEXT,           -- reason if admin rejects the report
   week_start DATE,           -- Monday of the report week
   week_end DATE,             -- Sunday of the report week
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
