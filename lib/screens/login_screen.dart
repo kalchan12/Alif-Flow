@@ -97,49 +97,6 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SafeArea(
         child: Stack(
           children: [
-            // ── Theme toggle button (top-right) ──
-            Positioned(
-              top: 12,
-              right: 12,
-              child: ListenableBuilder(
-                listenable: themeProvider,
-                builder: (context, _) {
-                  return IconButton(
-                    onPressed: () => themeProvider.toggleTheme(),
-                    icon: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      transitionBuilder: (child, animation) {
-                        return RotationTransition(
-                          turns: animation,
-                          child: FadeTransition(
-                            opacity: animation,
-                            child: child,
-                          ),
-                        );
-                      },
-                      child: Icon(
-                        themeProvider.isDarkMode
-                            ? Icons.light_mode_rounded
-                            : Icons.dark_mode_rounded,
-                        key: ValueKey(themeProvider.isDarkMode),
-                        color: colorScheme.primary,
-                        size: 26,
-                      ),
-                    ),
-                    tooltip: themeProvider.isDarkMode
-                        ? 'Switch to Light Mode'
-                        : 'Switch to Dark Mode',
-                    style: IconButton.styleFrom(
-                      backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-
             // ── Main login form ──
             Center(
               child: SingleChildScrollView(
@@ -253,6 +210,49 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
+              ),
+            ),
+
+            // ── Theme toggle button (top-right) ──
+            Positioned(
+              top: 12,
+              right: 12,
+              child: ListenableBuilder(
+                listenable: themeProvider,
+                builder: (context, _) {
+                  return IconButton(
+                    onPressed: () => themeProvider.toggleTheme(),
+                    icon: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      transitionBuilder: (child, animation) {
+                        return RotationTransition(
+                          turns: animation,
+                          child: FadeTransition(
+                            opacity: animation,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: Icon(
+                        themeProvider.isDarkMode
+                            ? Icons.light_mode_rounded
+                            : Icons.dark_mode_rounded,
+                        key: ValueKey(themeProvider.isDarkMode),
+                        color: colorScheme.primary,
+                        size: 26,
+                      ),
+                    ),
+                    tooltip: themeProvider.isDarkMode
+                        ? 'Switch to Light Mode'
+                        : 'Switch to Dark Mode',
+                    style: IconButton.styleFrom(
+                      backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ],
