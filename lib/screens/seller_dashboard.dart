@@ -9,6 +9,7 @@ import 'package:alif_flow/widgets/responsive_layout.dart';
 import 'package:alif_flow/widgets/spreadsheet_table.dart';
 import 'package:alif_flow/screens/pricing_screen.dart';
 import 'package:alif_flow/screens/my_reports_screen.dart';
+import 'package:alif_flow/theme/theme_provider.dart';
 
 class SellerDashboard extends StatefulWidget {
   const SellerDashboard({super.key});
@@ -147,6 +148,16 @@ class _SellerDashboardState extends State<SellerDashboard> {
       appBar: AppBar(
         title: const Text('Seller Dashboard'),
         actions: [
+          ListenableBuilder(
+            listenable: themeProvider,
+            builder: (context, _) {
+              return IconButton(
+                icon: Icon(themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode),
+                onPressed: () => themeProvider.toggleTheme(),
+                tooltip: 'Toggle Theme',
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {

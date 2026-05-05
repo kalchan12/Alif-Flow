@@ -61,6 +61,7 @@ class ProductPrice {
 class PriceChangeRequest {
   final String id;
   final String productId;
+  final String productName;
   final String requestedBy;
   final double oldPrice;
   final double newPrice;
@@ -70,6 +71,7 @@ class PriceChangeRequest {
   PriceChangeRequest({
     required this.id,
     required this.productId,
+    required this.productName,
     required this.requestedBy,
     required this.oldPrice,
     required this.newPrice,
@@ -81,6 +83,7 @@ class PriceChangeRequest {
     return PriceChangeRequest(
       id: json['id'] as String,
       productId: json['product_id'] as String,
+      productName: json['products'] != null ? json['products']['product_name'] as String? ?? 'Unknown Product' : 'Unknown Product',
       requestedBy: json['requested_by'] as String,
       oldPrice: (json['old_price'] as num?)?.toDouble() ?? 0.0,
       newPrice: (json['new_price'] as num?)?.toDouble() ?? 0.0,

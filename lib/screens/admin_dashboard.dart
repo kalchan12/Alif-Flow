@@ -3,6 +3,7 @@ import 'package:alif_flow/services/report_service.dart';
 import 'package:alif_flow/screens/pricing_screen.dart';
 import 'package:alif_flow/utils/ui_helpers.dart';
 import 'package:alif_flow/widgets/responsive_layout.dart';
+import 'package:alif_flow/theme/theme_provider.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -42,6 +43,16 @@ class _AdminDashboardState extends State<AdminDashboard> {
       appBar: AppBar(
         title: const Text('Admin Dashboard'),
         actions: [
+          ListenableBuilder(
+            listenable: themeProvider,
+            builder: (context, _) {
+              return IconButton(
+                icon: Icon(themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode),
+                onPressed: () => themeProvider.toggleTheme(),
+                tooltip: 'Toggle Theme',
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             onPressed: _loadReports,

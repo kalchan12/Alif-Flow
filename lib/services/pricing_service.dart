@@ -117,7 +117,7 @@ class PricingService {
   Future<List<PriceChangeRequest>> fetchPendingRequests() async {
     final response = await _supabase
         .from('price_change_requests')
-        .select()
+        .select('*, products(product_name)')
         .eq('status', 'pending')
         .order('created_at', ascending: false);
 

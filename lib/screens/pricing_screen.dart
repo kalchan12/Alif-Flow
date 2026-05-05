@@ -204,6 +204,14 @@ class _PricingScreenState extends State<PricingScreen> {
                       ],
                     ),
                   ),
+                  if (_isAdmin)
+                    IconButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/admin-price-requests').then((_) => _loadProducts());
+                      },
+                      icon: Icon(Icons.pending_actions, color: colorScheme.primary),
+                      tooltip: 'View Pending Requests',
+                    ),
                   IconButton(
                     onPressed: _loadProducts,
                     icon: Icon(Icons.refresh_rounded, color: colorScheme.primary),
