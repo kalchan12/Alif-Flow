@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:alif_flow/models/sales_entry.dart';
 import 'package:alif_flow/utils/ui_helpers.dart';
 import 'package:alif_flow/widgets/responsive_layout.dart';
@@ -48,6 +50,7 @@ class _SellerDashboardState extends State<SellerDashboard> {
       .map((e) => ProductMovementEntry(productName: e.productName)).toList();
 
   // --- State Variables ---
+  bool _isLoading = true;
   late List<SalesEntry> _soapSales;
   late List<ProductMovementEntry> _soapMovement;
   late List<SalesEntry> _specialSales;
@@ -58,16 +61,47 @@ class _SellerDashboardState extends State<SellerDashboard> {
   @override
   void initState() {
     super.initState();
-    _resetData();
+    _loadSavedData();
   }
 
-  void _resetData() {
-    _soapSales = _initSoapSales();
-    _soapMovement = _initSoapMovement();
-    _specialSales = _initSpecialSales();
-    _specialMovement = _initSpecialMovement();
-    _paintSales = _initPaintSales();
-    _paintMovement = _initPaintMovement();
+  Future<void> _loadSavedData() async {
+    final prefs = await SharedPreferences.getInstance();
+    
+    // Helper to load list
+    List<T> loadList<T>(String key, T Function(Map<String, dynamic>) fromJson, List<T> Function() defaultInit) {
+      final String? jsonStr = prefs.getString(key);
+      if (jsonStr != null) {
+        final List<dynamic> jsonList = jsonDecode(jsonStr);
+        return jsonList.map((e) => fromJson(e as Map<String, dynamic>)).toList();
+      }
+      return defaultInit();
+    }
+
+    setState(() {
+      _soapSales = loadList('soapSales', SalesEntry.fromJson, _initSoapSales);
+      _soapMovement = loadList('soapMovement', ProductMovementEntry.fromJson, _initSoapMovement);
+      _specialSales = loadList('specialSales', SalesEntry.fromJson, _initSpecialSales);
+      _specialMovement = loadList('specialMovement', ProductMovementEntry.fromJson, _initSpecialMovement);
+      _paintSales = loadList('paintSales', SalesEntry.fromJson, _initPaintSales);
+      _paintMovement = loadList('paintMovement', ProductMovementEntry.fromJson, _initPaintMovement);
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _saveCategoryLocally(String categoryKey, List<SalesEntry> sales, List<ProductMovementEntry> movement) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('${categoryKey}Sales', jsonEncode(sales.map((e) => e.toJson()).toList()));
+    await prefs.setString('${categoryKey}Movement', jsonEncode(movement.map((e) => e.toJson()).toList()));
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Saved $categoryKey draft locally!'),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   // --- Build ---
@@ -152,6 +186,9 @@ class _SellerDashboardState extends State<SellerDashboard> {
   }
 
   Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
     if (_selectedIndex == 0) {
       return _buildSalesEntryTab();
     } else {
@@ -180,6 +217,7 @@ class _SellerDashboardState extends State<SellerDashboard> {
                       children: [
                         _buildCategorySection(
                           title: '🧼 Weekly Soap Sales',
+                          categoryKey: 'soap',
                           icon: Icons.clean_hands_outlined,
                           salesEntries: _soapSales,
                           movementEntries: _soapMovement,
@@ -189,6 +227,7 @@ class _SellerDashboardState extends State<SellerDashboard> {
                         
                         _buildCategorySection(
                           title: '✨ Special Products',
+                          categoryKey: 'special',
                           icon: Icons.star_border_rounded,
                           salesEntries: _specialSales,
                           movementEntries: _specialMovement,
@@ -198,6 +237,7 @@ class _SellerDashboardState extends State<SellerDashboard> {
                         
                         _buildCategorySection(
                           title: '🎨 Paint Sales',
+                          categoryKey: 'paint',
                           icon: Icons.format_paint_outlined,
                           salesEntries: _paintSales,
                           movementEntries: _paintMovement,
@@ -277,6 +317,7 @@ class _SellerDashboardState extends State<SellerDashboard> {
 
   Widget _buildCategorySection({
     required String title,
+    required String categoryKey,
     required IconData icon,
     required List<SalesEntry> salesEntries,
     required List<ProductMovementEntry> movementEntries,
@@ -289,11 +330,24 @@ class _SellerDashboardState extends State<SellerDashboard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader(
-          icon: icon,
-          title: title,
-          subtitle: '${salesEntries.length} items',
-          colorScheme: colorScheme,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildSectionHeader(
+              icon: icon,
+              title: title,
+              subtitle: '${salesEntries.length} items',
+              colorScheme: colorScheme,
+            ),
+            FilledButton.tonalIcon(
+              onPressed: () => _saveCategoryLocally(categoryKey, salesEntries, movementEntries),
+              icon: const Icon(Icons.save_outlined, size: 18),
+              label: const Text('Update'),
+              style: FilledButton.styleFrom(
+                visualDensity: VisualDensity.compact,
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 12),
 
@@ -456,9 +510,13 @@ class _SellerDashboardState extends State<SellerDashboard> {
     );
 
     if (result == true) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear(); // Clear all drafts
+
       setState(() {
-         _resetData();
+         _isLoading = true;
       });
+      await _loadSavedData();
     }
   }
 }
