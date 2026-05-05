@@ -24,20 +24,38 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _signIn() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    // Front-end validation
+    if (email.isEmpty || password.isEmpty) {
+      UiHelpers.showCustomToast(
+        context,
+        'Please enter both email and password.',
+        isError: true,
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
     try {
       await _authService.signIn(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
+        email: email,
+        password: password,
       );
       
       // Determine role from metadata
       final role = _authService.currentUserRole;
       
       if (!mounted) return;
+
+      UiHelpers.showCustomToast(
+        context,
+        'Welcome back! Redirecting...',
+      );
 
       if (role == 'Admin') {
         Navigator.pushReplacementNamed(context, '/admin_dashboard');
@@ -46,9 +64,18 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       if (mounted) {
+        String errorMessage = 'Error logging in';
+        if (e.toString().contains('Invalid login credentials')) {
+          errorMessage = 'Invalid email or password. Please try again.';
+        } else if (e.toString().contains('network')) {
+          errorMessage = 'Network error. Please check your connection.';
+        } else {
+          errorMessage = 'Error: ${e.toString()}';
+        }
+
         UiHelpers.showCustomToast(
           context, 
-          'Error logging in: ${e.toString()}', 
+          errorMessage, 
           isError: true,
         );
       }

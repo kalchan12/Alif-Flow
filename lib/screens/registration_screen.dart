@@ -29,9 +29,35 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   Future<void> _register() async {
-    if (_passwordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Passwords do not match')),
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
+
+    // Front-end validation
+    if (name.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+      UiHelpers.showCustomToast(
+        context,
+        'Please fill in all fields.',
+        isError: true,
+      );
+      return;
+    }
+
+    if (password != confirmPassword) {
+      UiHelpers.showCustomToast(
+        context,
+        'Passwords do not match.',
+        isError: true,
+      );
+      return;
+    }
+
+    if (password.length < 6) {
+      UiHelpers.showCustomToast(
+        context,
+        'Password must be at least 6 characters long.',
+        isError: true,
       );
       return;
     }
@@ -42,25 +68,34 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
     try {
       await _authService.signUp(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-        fullName: _nameController.text.trim(),
+        email: email,
+        password: password,
+        fullName: name,
         role: _selectedRole,
       );
       
       if (mounted) {
         UiHelpers.showCustomToast(
           context, 
-          'Registration successful! You are now logged in.',
+          'Registration successful! You can now log in.',
         );
         Navigator.pushReplacementNamed(context, '/login');
       }
       
     } catch (e) {
       if (mounted) {
+        String errorMessage = 'Error registering';
+        if (e.toString().contains('already registered')) {
+          errorMessage = 'This email is already registered. Try logging in.';
+        } else if (e.toString().contains('network')) {
+          errorMessage = 'Network error. Please check your connection.';
+        } else {
+          errorMessage = 'Error: ${e.toString()}';
+        }
+
         UiHelpers.showCustomToast(
           context, 
-          'Error registering: ${e.toString()}', 
+          errorMessage, 
           isError: true,
         );
       }

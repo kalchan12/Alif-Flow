@@ -94,12 +94,9 @@ class _SellerDashboardState extends State<SellerDashboard> {
     await prefs.setString('${categoryKey}Movement', jsonEncode(movement.map((e) => e.toJson()).toList()));
     
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Saved $categoryKey draft locally!'),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 2),
-        ),
+      UiHelpers.showCustomToast(
+        context,
+        'Saved $categoryKey draft locally!',
       );
     }
   }
@@ -216,7 +213,7 @@ class _SellerDashboardState extends State<SellerDashboard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildCategorySection(
-                          title: '🧼 Weekly Soap Sales',
+                          title: 'Weekly Soap Sales',
                           categoryKey: 'soap',
                           icon: Icons.clean_hands_outlined,
                           salesEntries: _soapSales,
@@ -226,7 +223,7 @@ class _SellerDashboardState extends State<SellerDashboard> {
                         const SizedBox(height: 48),
                         
                         _buildCategorySection(
-                          title: '✨ Special Products',
+                          title: 'Weekly Special Products',
                           categoryKey: 'special',
                           icon: Icons.star_border_rounded,
                           salesEntries: _specialSales,
@@ -236,7 +233,7 @@ class _SellerDashboardState extends State<SellerDashboard> {
                         const SizedBox(height: 48),
                         
                         _buildCategorySection(
-                          title: '🎨 Paint Sales',
+                          title: 'Weekly Paint Sales',
                           categoryKey: 'paint',
                           icon: Icons.format_paint_outlined,
                           salesEntries: _paintSales,
