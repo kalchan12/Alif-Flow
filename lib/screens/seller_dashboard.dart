@@ -7,7 +7,6 @@ import 'package:alif_flow/services/pricing_service.dart';
 import 'package:alif_flow/utils/ui_helpers.dart';
 import 'package:alif_flow/widgets/responsive_layout.dart';
 import 'package:alif_flow/widgets/spreadsheet_table.dart';
-import 'package:alif_flow/screens/pricing_screen.dart';
 import 'package:alif_flow/screens/my_reports_screen.dart';
 import 'package:alif_flow/theme/theme_provider.dart';
 
@@ -189,11 +188,6 @@ class _SellerDashboardState extends State<SellerDashboard> {
                   selectedIcon: Icon(Icons.history),
                   label: Text('History'),
                 ),
-                NavigationRailDestination(
-                  icon: Icon(Icons.attach_money_rounded),
-                  selectedIcon: Icon(Icons.attach_money_rounded),
-                  label: Text('Pricing'),
-                ),
               ],
             ),
             const VerticalDivider(thickness: 1, width: 1),
@@ -219,11 +213,6 @@ class _SellerDashboardState extends State<SellerDashboard> {
                   icon: Icon(Icons.history_outlined),
                   selectedIcon: Icon(Icons.history),
                   label: 'History',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.attach_money_rounded),
-                  selectedIcon: Icon(Icons.attach_money_rounded),
-                  label: 'Pricing',
                 ),
               ],
             )
@@ -253,8 +242,6 @@ class _SellerDashboardState extends State<SellerDashboard> {
             });
           },
         );
-      case 2:
-        return const PricingScreen();
       default:
         return Center(
           child: Text('Content for tab $_selectedIndex'),
