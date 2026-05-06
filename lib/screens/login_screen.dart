@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:alif_flow/theme/theme_provider.dart';
 import 'package:alif_flow/services/auth_service.dart';
 import 'package:alif_flow/utils/ui_helpers.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -123,14 +124,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             shape: BoxShape.circle,
                           ),
                           child: Center(
-                            child: Text(
-                              'AF',
-                              style: TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.primary,
-                                letterSpacing: -1,
-                              ),
+                            child: SvgPicture.asset(
+                              'assets/icon/alif_flow_app_icon.svg',
+                              width: 80,
+                              height: 80,
+                              fit: BoxFit.contain,
                             ),
                           ),
                         ),
