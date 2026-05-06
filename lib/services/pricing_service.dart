@@ -144,4 +144,33 @@ class PricingService {
         .map((e) => ProductPrice.fromJson(e as Map<String, dynamic>))
         .toList();
   }
+
+  /// Add a new product to the database (default price 0.0).
+  Future<ProductPrice> addNewProduct({
+    required String name,
+    required String category,
+  }) async {
+    // 1. Check if product already exists in this category (case insensitive)
+    final existing = await _supabase
+        .from('products')
+        .select()
+        .ilike('product_name', name)
+        .eq('category', category)
+        .maybeSingle();
+
+    if (existing != null) {
+      throw Exception('A product with this name already exists in $category.');
+    }
+
+    // 2. Insert new product
+    final response = await _supabase.from('products').insert({
+      'product_name': name,
+      'category': category,
+      'unit_price': 0.0,
+      'is_active': true,
+      'sort_order': 99, // Default to bottom
+    }).select().single();
+
+    return ProductPrice.fromJson(response);
+  }
 }

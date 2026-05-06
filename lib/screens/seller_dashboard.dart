@@ -469,6 +469,7 @@ class _SellerDashboardState extends State<SellerDashboard> {
           title: title,
           subtitle: '${salesEntries.length} items',
           colorScheme: colorScheme,
+          onAdd: () => _showAddProductDialog(categoryKey),
         ),
         const SizedBox(height: 12),
 
@@ -673,16 +674,17 @@ class _SellerDashboardState extends State<SellerDashboard> {
     required String title,
     required String subtitle,
     required ColorScheme colorScheme,
+    VoidCallback? onAdd,
   }) {
     return Row(
       children: [
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: colorScheme.primaryContainer.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(8),
+            color: colorScheme.primary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, size: 22, color: colorScheme.primary),
+          child: Icon(icon, color: colorScheme.primary, size: 20),
         ),
         const SizedBox(width: 12),
         Column(
@@ -690,21 +692,28 @@ class _SellerDashboardState extends State<SellerDashboard> {
           children: [
             Text(
               title,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface,
-              ),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             Text(
               subtitle,
               style: TextStyle(
-                fontSize: 13,
                 color: colorScheme.onSurfaceVariant,
               ),
             ),
           ],
         ),
+        if (onAdd != null) ...[
+          const Spacer(),
+          TextButton.icon(
+            onPressed: onAdd,
+            icon: const Icon(Icons.add, size: 18),
+            label: const Text('Add Product'),
+            style: TextButton.styleFrom(
+              foregroundColor: colorScheme.primary,
+              visualDensity: VisualDensity.compact,
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -739,6 +748,81 @@ class _SellerDashboardState extends State<SellerDashboard> {
         _isLoading = true;
       });
       await _loadData();
+    }
+  }
+
+  Future<void> _showAddProductDialog(String category) async {
+    final TextEditingController controller = TextEditingController();
+    
+    final name = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Add New Product to ${category.toUpperCase()}'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            labelText: 'Product Name',
+            hintText: 'Enter name (e.g. New Soap)',
+          ),
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final val = controller.text.trim();
+              if (val.isNotEmpty) {
+                Navigator.pop(context, val);
+              }
+            },
+            child: const Text('Add Product'),
+          ),
+        ],
+      ),
+    );
+
+    if (name == null || !mounted) return;
+
+    try {
+      UiHelpers.showCustomToast(context, 'Adding product...');
+      
+      // 1. Save to Database
+      final newProduct = await _pricingService.addNewProduct(
+        name: name,
+        category: category,
+      );
+
+      // 2. Update Local State
+      final newSales = SalesEntry(
+        productName: newProduct.productName,
+        category: newProduct.category,
+        unitPrice: newProduct.unitPrice,
+      );
+      final newMovement = ProductMovementEntry(
+        productName: newProduct.productName,
+      );
+
+      setState(() {
+        _allProducts.add(newProduct);
+        _productsByCategory[category]?.add(newProduct);
+        _salesByCategory[category]?.add(newSales);
+        _movementByCategory[category]?.add(newMovement);
+      });
+
+      // 3. Persist to cache
+      await _saveCategoryLocally(category);
+
+      if (mounted) {
+        UiHelpers.showCustomToast(context, 'Product added successfully!');
+      }
+    } catch (e) {
+      if (mounted) {
+        UiHelpers.showCustomToast(context, 'Error: ${e.toString()}', isError: true);
+      }
     }
   }
 }
