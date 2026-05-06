@@ -107,12 +107,16 @@ class SellerStatsDashboard extends StatelessWidget {
                 child: Icon(icon, size: 20, color: iconColor),
               ),
               const SizedBox(width: 12),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: titleColor,
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: titleColor,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],

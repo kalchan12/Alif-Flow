@@ -86,12 +86,16 @@ class AdminStatsDashboard extends StatelessWidget {
                 child: Icon(icon, size: 20, color: colorScheme.onPrimary),
               ),
               const SizedBox(width: 12),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onPrimary.withValues(alpha: 0.9),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onPrimary.withValues(alpha: 0.9),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
