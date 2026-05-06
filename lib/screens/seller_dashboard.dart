@@ -469,7 +469,6 @@ class _SellerDashboardState extends State<SellerDashboard> {
           title: title,
           subtitle: '${salesEntries.length} items',
           colorScheme: colorScheme,
-          onAdd: () => _showAddProductDialog(categoryKey),
         ),
         const SizedBox(height: 12),
 
@@ -649,13 +648,7 @@ class _SellerDashboardState extends State<SellerDashboard> {
               }
             });
           },
-          onAddRow: () {
-            // Not allowing add row since products come from database
-            UiHelpers.showCustomToast(
-              context,
-              'Products are managed from the Pricing tab.',
-            );
-          },
+          onAddRow: () => _showAddProductDialog(categoryKey),
           onDeleteRow: (index) {
             // Not allowing delete since products come from database
             UiHelpers.showCustomToast(

@@ -459,7 +459,7 @@ class _SpreadsheetTableState extends State<SpreadsheetTable> {
             ),
             const SizedBox(width: 6),
             Text(
-              'Add Row',
+              'Add Product',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
