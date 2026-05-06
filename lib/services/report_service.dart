@@ -162,7 +162,7 @@ class ReportService {
     // 2. Fetch count of pending (submitted) reports that need review
     final pendingReportsResponse = await _supabase
         .from('weekly_reports')
-        .select('id', const FetchOptions(count: CountOption.exact))
+        .select('id')
         .eq('status', 'submitted');
     
     final pendingCount = pendingReportsResponse.length;
