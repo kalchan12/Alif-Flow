@@ -85,10 +85,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     } catch (e) {
       if (mounted) {
         String errorMessage = 'Error registering';
-        if (e.toString().contains('already registered')) {
+        final errorStr = e.toString().toLowerCase();
+
+        if (errorStr.contains('already registered')) {
           errorMessage = 'This email is already registered. Try logging in.';
-        } else if (e.toString().contains('network')) {
-          errorMessage = 'Network error. Please check your connection.';
+        } else if (errorStr.contains('socketexception') || 
+                   errorStr.contains('network_error') || 
+                   errorStr.contains('failed host lookup') ||
+                   errorStr.contains('connection timed out')) {
+          errorMessage = 'No internet connection. Please check your network and try again.';
         } else {
           errorMessage = 'Error: ${e.toString()}';
         }

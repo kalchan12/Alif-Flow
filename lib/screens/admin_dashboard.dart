@@ -44,7 +44,23 @@ class _AdminDashboardState extends State<AdminDashboard> {
       _reports = await _reportService.fetchAllReports();
     } catch (e) {
       if (mounted) {
-        UiHelpers.showCustomToast(context, 'Error loading reports: $e', isError: true);
+        String errorMessage = 'Error loading reports';
+        final errorStr = e.toString().toLowerCase();
+
+        if (errorStr.contains('socketexception') || 
+            errorStr.contains('network_error') || 
+            errorStr.contains('failed host lookup') ||
+            errorStr.contains('connection timed out')) {
+          errorMessage = 'No internet connection. Please check your network and try again.';
+        } else {
+          errorMessage = 'Error: ${e.toString()}';
+        }
+
+        UiHelpers.showCustomToast(
+          context, 
+          errorMessage, 
+          isError: true,
+        );
       }
     }
     if (mounted) setState(() => _isLoading = false);

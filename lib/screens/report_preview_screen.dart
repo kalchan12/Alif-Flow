@@ -555,9 +555,23 @@ class _ReportPreviewScreenState extends State<ReportPreviewScreen> {
                     .pop(true); // Return true to indicate success
               } catch (e) {
                 if (!context.mounted) return;
+                String errorMessage = 'Error submitting report';
+                final errorStr = e.toString().toLowerCase();
+
+                if (errorStr.contains('socketexception') || 
+                    errorStr.contains('network_error') || 
+                    errorStr.contains('failed host lookup') ||
+                    errorStr.contains('connection timed out')) {
+                  errorMessage = 'No internet connection. Please check your network and try again.';
+                } else {
+                  errorMessage = 'Error: ${e.toString()}';
+                }
+
                 UiHelpers.showCustomToast(
-                    context, 'Error submitting report: $e',
-                    isError: true);
+                  context, 
+                  errorMessage, 
+                  isError: true,
+                );
               } finally {
                 if (mounted) {
                   setState(() => _isSubmitting = false);

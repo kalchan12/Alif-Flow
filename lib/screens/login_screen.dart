@@ -66,10 +66,15 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       if (mounted) {
         String errorMessage = 'Error logging in';
-        if (e.toString().contains('Invalid login credentials')) {
+        final errorStr = e.toString().toLowerCase();
+        
+        if (errorStr.contains('invalid login credentials')) {
           errorMessage = 'Invalid email or password. Please try again.';
-        } else if (e.toString().contains('network')) {
-          errorMessage = 'Network error. Please check your connection.';
+        } else if (errorStr.contains('socketexception') || 
+                   errorStr.contains('network_error') || 
+                   errorStr.contains('failed host lookup') ||
+                   errorStr.contains('connection timed out')) {
+          errorMessage = 'No internet connection. Please check your network and try again.';
         } else {
           errorMessage = 'Error: ${e.toString()}';
         }
