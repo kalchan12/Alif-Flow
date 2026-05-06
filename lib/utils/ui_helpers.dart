@@ -193,7 +193,7 @@ class UiHelpers {
     String formattedInt = integerPart.replaceAllMapped(reg, (Match m) => '${m[1]},');
 
     if (decimalPart == '00') {
-      return '$formattedInt.'; 
+      return formattedInt; 
     } else {
       // Remove trailing zero if it's something like .50
       if (decimalPart.endsWith('0')) {
