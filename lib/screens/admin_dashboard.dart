@@ -375,12 +375,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     Text(createdAt, style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
                     const SizedBox(height: 4),
                     Text(
-                      'Sales: \$${totalSales.toStringAsFixed(2)}',
+                      'Sales: \$${UiHelpers.formatNumber(totalSales)}',
                       style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: colorScheme.primary),
                     ),
                     if (balance > 0)
                       Text(
-                        'Balance: \$${balance.toStringAsFixed(2)}',
+                        'Balance: \$${UiHelpers.formatNumber(balance)}',
                         style: const TextStyle(fontSize: 12, color: Colors.red),
                       ),
                   ],

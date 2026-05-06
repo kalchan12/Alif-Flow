@@ -401,7 +401,7 @@ class _AdminReportDetailScreenState extends State<AdminReportDetailScreen> {
             const Divider(height: 24),
             _buildInfoRow('Submitted', date),
             _buildInfoRow('Items', _salesEntries.length.toString()),
-            _buildInfoRow('Balance', balance > 0 ? '\$${balance.toStringAsFixed(2)} pending' : 'Paid in full',
+            _buildInfoRow('Balance', balance > 0 ? '\$${UiHelpers.formatNumber(balance)} pending' : 'Paid in full',
                 valueColor: balance > 0 ? Colors.red : Colors.green),
             if (rejectionReason != null && rejectionReason.isNotEmpty) ...[
               const Divider(height: 16),
@@ -479,17 +479,17 @@ class _AdminReportDetailScreenState extends State<AdminReportDetailScreen> {
               footerBuilder: (col) {
                 switch (col) {
                   case 0: return const CellData(value: 'TOTAL');
-                  case 1: return CellData(value: catSales.fold<int>(0, (s, e) => s + e.quantitySold).toString());
+                  case 1: return CellData(value: UiHelpers.formatNumber(catSales.fold<int>(0, (s, e) => s + e.quantitySold)));
                   case 2: return const CellData(value: '---');
-                  case 3: return CellData(value: catTotalSales > 0 ? catTotalSales.toStringAsFixed(2) : '');
-                  case 4: return CellData(value: catTotalReceived > 0 ? catTotalReceived.toStringAsFixed(2) : '');
+                  case 3: return CellData(value: catTotalSales > 0 ? UiHelpers.formatNumber(catTotalSales) : '');
+                  case 4: return CellData(value: catTotalReceived > 0 ? UiHelpers.formatNumber(catTotalReceived) : '');
                   case 5: return CellData(
-                      value: catTotalBalance != 0 ? catTotalBalance.toStringAsFixed(2) : '',
+                      value: catTotalBalance != 0 ? UiHelpers.formatNumber(catTotalBalance) : '',
                       textColor: catTotalBalance > 0 ? colorScheme.error : (catTotalBalance < 0 ? colorScheme.primary : null));
-                  case 6: return CellData(value: catMovement.fold<int>(0, (s, e) => s + (e?.previousStock ?? 0)).toString());
-                  case 7: return CellData(value: catMovement.fold<int>(0, (s, e) => s + (e?.productsMoved ?? 0)).toString());
-                  case 8: return CellData(value: catMovement.fold<int>(0, (s, e) => s + (e?.newStockAdded ?? 0)).toString());
-                  case 9: return CellData(value: catMovement.fold<int>(0, (s, e) => s + (e?.currentStock ?? 0)).toString());
+                  case 6: return CellData(value: UiHelpers.formatNumber(catMovement.fold<int>(0, (s, e) => s + (e?.previousStock ?? 0))));
+                  case 7: return CellData(value: UiHelpers.formatNumber(catMovement.fold<int>(0, (s, e) => s + (e?.productsMoved ?? 0))));
+                  case 8: return CellData(value: UiHelpers.formatNumber(catMovement.fold<int>(0, (s, e) => s + (e?.newStockAdded ?? 0))));
+                  case 9: return CellData(value: UiHelpers.formatNumber(catMovement.fold<int>(0, (s, e) => s + (e?.currentStock ?? 0))));
                   default: return const CellData();
                 }
               },
@@ -498,17 +498,17 @@ class _AdminReportDetailScreenState extends State<AdminReportDetailScreen> {
                 final m = catMovement[row];
                 switch (col) {
                   case 0: return CellData(value: s.productName);
-                  case 1: return CellData(value: s.quantitySold > 0 ? s.quantitySold.toString() : '');
-                  case 2: return CellData(value: s.unitPrice > 0 ? s.unitPrice.toStringAsFixed(2) : '');
-                  case 3: return CellData(value: s.totalPrice > 0 ? s.totalPrice.toStringAsFixed(2) : '');
-                  case 4: return CellData(value: s.amountReceived > 0 ? s.amountReceived.toStringAsFixed(2) : '');
+                  case 1: return CellData(value: s.quantitySold > 0 ? UiHelpers.formatNumber(s.quantitySold) : '');
+                  case 2: return CellData(value: s.unitPrice > 0 ? UiHelpers.formatNumber(s.unitPrice) : '');
+                  case 3: return CellData(value: s.totalPrice > 0 ? UiHelpers.formatNumber(s.totalPrice) : '');
+                  case 4: return CellData(value: s.amountReceived > 0 ? UiHelpers.formatNumber(s.amountReceived) : '');
                   case 5:
                     final bal = s.balanceDue;
-                    return CellData(value: bal != 0 ? bal.toStringAsFixed(2) : '', textColor: bal > 0 ? colorScheme.error : (bal < 0 ? colorScheme.primary : null));
-                  case 6: return CellData(value: (m?.previousStock ?? 0) > 0 ? m!.previousStock.toString() : '');
-                  case 7: return CellData(value: (m?.productsMoved ?? 0) > 0 ? m!.productsMoved.toString() : '');
-                  case 8: return CellData(value: (m?.newStockAdded ?? 0) > 0 ? m!.newStockAdded.toString() : '');
-                  case 9: return CellData(value: (m?.currentStock ?? 0) > 0 ? m!.currentStock.toString() : '');
+                    return CellData(value: bal != 0 ? UiHelpers.formatNumber(bal) : '', textColor: bal > 0 ? colorScheme.error : (bal < 0 ? colorScheme.primary : null));
+                  case 6: return CellData(value: (m?.previousStock ?? 0) > 0 ? UiHelpers.formatNumber(m!.previousStock) : '');
+                  case 7: return CellData(value: (m?.productsMoved ?? 0) > 0 ? UiHelpers.formatNumber(m!.productsMoved) : '');
+                  case 8: return CellData(value: (m?.newStockAdded ?? 0) > 0 ? UiHelpers.formatNumber(m!.newStockAdded) : '');
+                  case 9: return CellData(value: (m?.currentStock ?? 0) > 0 ? UiHelpers.formatNumber(m!.currentStock) : '');
                   default: return const CellData();
                 }
               },
@@ -541,7 +541,7 @@ class _AdminReportDetailScreenState extends State<AdminReportDetailScreen> {
       children: [
         Text(label, style: TextStyle(fontSize: isGrandTotal ? 18 : 14, fontWeight: isGrandTotal ? FontWeight.bold : FontWeight.normal)),
         Text(
-          '\$${value.toStringAsFixed(2)}',
+          '\$${UiHelpers.formatNumber(value)}',
           style: TextStyle(
             fontSize: isGrandTotal ? 20 : 16,
             fontWeight: FontWeight.bold,

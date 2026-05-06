@@ -2,6 +2,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:alif_flow/models/sales_entry.dart';
+import 'package:alif_flow/utils/ui_helpers.dart';
 
 class PdfReportService {
   /// Generate and show print/share dialog for a weekly report.
@@ -186,31 +187,30 @@ class PdfReportService {
           final m = i < movements.length ? movements[i] : null;
           return [
             s.productName,
-            s.quantitySold > 0 ? s.quantitySold.toString() : '-',
-            s.unitPrice > 0 ? s.unitPrice.toStringAsFixed(2) : '-',
-            s.totalPrice > 0 ? s.totalPrice.toStringAsFixed(2) : '-',
-            s.amountReceived > 0 ? s.amountReceived.toStringAsFixed(2) : '-',
-            s.balanceDue != 0 ? s.balanceDue.toStringAsFixed(2) : '-',
-            (m?.previousStock ?? 0) > 0 ? m!.previousStock.toString() : '-',
-            (m?.productsMoved ?? 0) > 0 ? m!.productsMoved.toString() : '-',
-            (m?.newStockAdded ?? 0) > 0 ? m!.newStockAdded.toString() : '-',
-            (m?.currentStock ?? 0) > 0 ? m!.currentStock.toString() : '-',
+            s.quantitySold > 0 ? UiHelpers.formatNumber(s.quantitySold) : '-',
+            s.unitPrice > 0 ? UiHelpers.formatNumber(s.unitPrice) : '-',
+            s.totalPrice > 0 ? UiHelpers.formatNumber(s.totalPrice) : '-',
+            s.amountReceived > 0 ? UiHelpers.formatNumber(s.amountReceived) : '-',
+            s.balanceDue != 0 ? UiHelpers.formatNumber(s.balanceDue) : '-',
+            (m?.previousStock ?? 0) > 0 ? UiHelpers.formatNumber(m!.previousStock) : '-',
+            (m?.productsMoved ?? 0) > 0 ? UiHelpers.formatNumber(m!.productsMoved) : '-',
+            (m?.newStockAdded ?? 0) > 0 ? UiHelpers.formatNumber(m!.newStockAdded) : '-',
+            (m?.currentStock ?? 0) > 0 ? UiHelpers.formatNumber(m!.currentStock) : '-',
           ];
         }),
         // Totals row
         [
           'TOTAL',
-          sales.fold<int>(0, (s, e) => s + e.quantitySold).toString(),
+          UiHelpers.formatNumber(sales.fold<int>(0, (s, e) => s + e.quantitySold)),
           '---',
-          sales.fold<double>(0, (s, e) => s + e.totalPrice).toStringAsFixed(2),
-          sales.fold<double>(0, (s, e) => s + e.amountReceived).toStringAsFixed(2),
-          (sales.fold<double>(0, (s, e) => s + e.totalPrice) -
-                  sales.fold<double>(0, (s, e) => s + e.amountReceived))
-              .toStringAsFixed(2),
-          movements.fold<int>(0, (s, e) => s + (e?.previousStock ?? 0)).toString(),
-          movements.fold<int>(0, (s, e) => s + (e?.productsMoved ?? 0)).toString(),
-          movements.fold<int>(0, (s, e) => s + (e?.newStockAdded ?? 0)).toString(),
-          movements.fold<int>(0, (s, e) => s + (e?.currentStock ?? 0)).toString(),
+          UiHelpers.formatNumber(sales.fold<double>(0, (s, e) => s + e.totalPrice)),
+          UiHelpers.formatNumber(sales.fold<double>(0, (s, e) => s + e.amountReceived)),
+          UiHelpers.formatNumber(sales.fold<double>(0, (s, e) => s + e.totalPrice) -
+                  sales.fold<double>(0, (s, e) => s + e.amountReceived)),
+          UiHelpers.formatNumber(movements.fold<int>(0, (s, e) => s + (e?.previousStock ?? 0))),
+          UiHelpers.formatNumber(movements.fold<int>(0, (s, e) => s + (e?.productsMoved ?? 0))),
+          UiHelpers.formatNumber(movements.fold<int>(0, (s, e) => s + (e?.newStockAdded ?? 0))),
+          UiHelpers.formatNumber(movements.fold<int>(0, (s, e) => s + (e?.currentStock ?? 0))),
         ],
       ],
     );
@@ -230,7 +230,7 @@ class PdfReportService {
             ),
           ),
           pw.Text(
-            '\$${value.toStringAsFixed(2)}',
+            '\$${UiHelpers.formatNumber(value)}',
             style: pw.TextStyle(
               fontSize: isBold ? 14 : 11,
               fontWeight: pw.FontWeight.bold,

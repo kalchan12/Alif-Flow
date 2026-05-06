@@ -167,4 +167,39 @@ class UiHelpers {
       }
     }
   }
+
+  /// Formats numbers with comma separators and handles decimal dots.
+  /// Example: 20000.00 -> 20,000.
+  /// Example: 20000.50 -> 20,000.5
+  static String formatNumber(dynamic value) {
+    if (value == null) return '0';
+    double val;
+    if (value is num) {
+      val = value.toDouble();
+    } else if (value is String) {
+      val = double.tryParse(value.replaceAll(',', '')) ?? 0.0;
+    } else {
+      return value.toString();
+    }
+
+    // Split into integer and decimal parts
+    String str = val.toStringAsFixed(2);
+    List<String> parts = str.split('.');
+    String integerPart = parts[0];
+    String decimalPart = parts[1];
+
+    // Add commas to integer part
+    RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
+    String formattedInt = integerPart.replaceAllMapped(reg, (Match m) => '${m[1]},');
+
+    if (decimalPart == '00') {
+      return '$formattedInt.'; 
+    } else {
+      // Remove trailing zero if it's something like .50
+      if (decimalPart.endsWith('0')) {
+        decimalPart = decimalPart.substring(0, 1);
+      }
+      return '$formattedInt.$decimalPart';
+    }
+  }
 }

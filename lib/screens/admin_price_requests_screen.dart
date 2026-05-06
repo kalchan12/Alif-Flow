@@ -187,7 +187,7 @@ class _AdminPriceRequestsScreenState extends State<AdminPriceRequestsScreen> {
         Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
         const SizedBox(height: 4),
         Text(
-          '\$${price.toStringAsFixed(2)}',
+          '\$${UiHelpers.formatNumber(price)}',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color),
         ),
       ],

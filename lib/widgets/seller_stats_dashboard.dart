@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:alif_flow/utils/ui_helpers.dart';
 
 class SellerStatsDashboard extends StatelessWidget {
   final int currentDraftQuantity;
@@ -130,7 +131,7 @@ class SellerStatsDashboard extends StatelessWidget {
             )
           else ...[
             Text(
-              '${quantity} items',
+              '${UiHelpers.formatNumber(quantity)} items',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w900,
@@ -140,7 +141,7 @@ class SellerStatsDashboard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              '\$${earned.toStringAsFixed(2)} earned',
+              '\$${UiHelpers.formatNumber(earned)} earned',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,

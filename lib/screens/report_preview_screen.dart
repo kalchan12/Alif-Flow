@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:alif_flow/models/sales_entry.dart';
 import 'package:alif_flow/utils/ui_helpers.dart';
+import 'package:alif_flow/models/sales_entry.dart';
 import 'package:alif_flow/services/report_service.dart';
 import 'package:alif_flow/widgets/spreadsheet_table.dart';
 
@@ -357,17 +357,17 @@ class _ReportPreviewScreenState extends State<ReportPreviewScreen> {
                   case 3:
                     return CellData(
                         value: catTotalSales > 0
-                            ? catTotalSales.toStringAsFixed(2)
+                            ? UiHelpers.formatNumber(catTotalSales)
                             : '');
                   case 4:
                     return CellData(
                         value: catTotalReceived > 0
-                            ? catTotalReceived.toStringAsFixed(2)
+                            ? UiHelpers.formatNumber(catTotalReceived)
                             : '');
                   case 5:
                     return CellData(
                       value: catTotalBalance != 0
-                          ? catTotalBalance.toStringAsFixed(2)
+                          ? UiHelpers.formatNumber(catTotalBalance)
                           : '',
                       textColor: catTotalBalance > 0
                           ? colorScheme.error
@@ -379,22 +379,22 @@ class _ReportPreviewScreenState extends State<ReportPreviewScreen> {
                     final sum = catMovement.fold<int>(
                         0, (s, e) => s + (e?.previousStock ?? 0));
                     return CellData(
-                        value: sum > 0 ? sum.toString() : '');
+                        value: sum > 0 ? UiHelpers.formatNumber(sum) : '');
                   case 7:
                     final sum = catMovement.fold<int>(
                         0, (s, e) => s + (e?.productsMoved ?? 0));
                     return CellData(
-                        value: sum > 0 ? sum.toString() : '');
+                        value: sum > 0 ? UiHelpers.formatNumber(sum) : '');
                   case 8:
                     final sum = catMovement.fold<int>(
                         0, (s, e) => s + (e?.newStockAdded ?? 0));
                     return CellData(
-                        value: sum > 0 ? sum.toString() : '');
+                        value: sum > 0 ? UiHelpers.formatNumber(sum) : '');
                   case 9:
                     final sum = catMovement.fold<int>(
                         0, (s, e) => s + (e?.currentStock ?? 0));
                     return CellData(
-                        value: sum > 0 ? sum.toString() : '');
+                        value: sum > 0 ? UiHelpers.formatNumber(sum) : '');
                   default:
                     return const CellData();
                 }
@@ -408,27 +408,27 @@ class _ReportPreviewScreenState extends State<ReportPreviewScreen> {
                   case 1:
                     return CellData(
                         value: sales.quantitySold > 0
-                            ? sales.quantitySold.toString()
+                            ? UiHelpers.formatNumber(sales.quantitySold)
                             : '');
                   case 2:
                     return CellData(
                         value: sales.unitPrice > 0
-                            ? sales.unitPrice.toStringAsFixed(2)
+                            ? UiHelpers.formatNumber(sales.unitPrice)
                             : '');
                   case 3:
                     return CellData(
                         value: sales.totalPrice > 0
-                            ? sales.totalPrice.toStringAsFixed(2)
+                            ? UiHelpers.formatNumber(sales.totalPrice)
                             : '');
                   case 4:
                     return CellData(
                         value: sales.amountReceived > 0
-                            ? sales.amountReceived.toStringAsFixed(2)
+                            ? UiHelpers.formatNumber(sales.amountReceived)
                             : '');
                   case 5:
                     final bal = sales.balanceDue;
                     return CellData(
-                      value: bal != 0 ? bal.toStringAsFixed(2) : '',
+                      value: bal != 0 ? UiHelpers.formatNumber(bal) : '',
                       textColor: bal > 0
                           ? colorScheme.error
                           : (bal < 0 ? colorScheme.primary : null),
@@ -436,22 +436,22 @@ class _ReportPreviewScreenState extends State<ReportPreviewScreen> {
                   case 6:
                     return CellData(
                         value: (movement?.previousStock ?? 0) > 0
-                            ? movement!.previousStock.toString()
+                            ? UiHelpers.formatNumber(movement!.previousStock)
                             : '');
                   case 7:
                     return CellData(
                         value: (movement?.productsMoved ?? 0) > 0
-                            ? movement!.productsMoved.toString()
+                            ? UiHelpers.formatNumber(movement!.productsMoved)
                             : '');
                   case 8:
                     return CellData(
                         value: (movement?.newStockAdded ?? 0) > 0
-                            ? movement!.newStockAdded.toString()
+                            ? UiHelpers.formatNumber(movement!.newStockAdded)
                             : '');
                   case 9:
                     return CellData(
                         value: (movement?.currentStock ?? 0) > 0
-                            ? movement!.currentStock.toString()
+                            ? UiHelpers.formatNumber(movement!.currentStock)
                             : '');
                   default:
                     return const CellData();
@@ -500,7 +500,7 @@ class _ReportPreviewScreenState extends State<ReportPreviewScreen> {
           ),
         ),
         Text(
-          '\$${value.toStringAsFixed(2)}',
+          '\$${UiHelpers.formatNumber(value)}',
           style: TextStyle(
             fontSize: isGrandTotal ? 20 : 16,
             fontWeight: FontWeight.bold,

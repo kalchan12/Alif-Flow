@@ -49,7 +49,7 @@ class _PricingScreenState extends State<PricingScreen> {
       for (final products in grouped.values) {
         for (final product in products) {
           _priceControllers[product.id] = TextEditingController(
-            text: product.unitPrice > 0 ? product.unitPrice.toStringAsFixed(2) : '',
+            text: product.unitPrice > 0 ? UiHelpers.formatNumber(product.unitPrice) : '',
           );
         }
       }
@@ -78,7 +78,7 @@ class _PricingScreenState extends State<PricingScreen> {
           final controller = _priceControllers[product.id];
           if (controller == null) continue;
 
-          final newPrice = double.tryParse(controller.text) ?? 0.0;
+          final newPrice = double.tryParse(controller.text.replaceAll(',', '')) ?? 0.0;
           if (newPrice == product.unitPrice) continue; // No change
 
           if (_isAdmin) {

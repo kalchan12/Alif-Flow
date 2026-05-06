@@ -415,11 +415,11 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
               children: [
                 _buildInfoChip(Icons.calendar_today, createdAt, colorScheme),
                 const SizedBox(width: 12),
-                _buildInfoChip(Icons.attach_money, '\$${totalSales.toStringAsFixed(2)}', colorScheme),
+                _buildInfoChip(Icons.attach_money, '\$${UiHelpers.formatNumber(totalSales)}', colorScheme),
                 if (balance > 0) ...[
                   const SizedBox(width: 12),
                   _buildInfoChip(Icons.warning_amber_rounded,
-                      '\$${balance.toStringAsFixed(2)} due', colorScheme,
+                      '\$${UiHelpers.formatNumber(balance)} due', colorScheme,
                       color: Colors.red),
                 ],
               ],

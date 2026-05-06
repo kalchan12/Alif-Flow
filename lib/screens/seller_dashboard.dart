@@ -515,22 +515,22 @@ class _SellerDashboardState extends State<SellerDashboard> {
               case 1:
                 final sum =
                     salesEntries.fold<int>(0, (s, e) => s + e.quantitySold);
-                return CellData(value: sum > 0 ? sum.toString() : '');
+                return CellData(value: sum > 0 ? UiHelpers.formatNumber(sum) : '');
               case 2:
                 return const CellData(value: '---');
               case 3:
                 return CellData(
                     value:
-                        totalSales > 0 ? totalSales.toStringAsFixed(2) : '');
+                        totalSales > 0 ? UiHelpers.formatNumber(totalSales) : '');
               case 4:
                 return CellData(
                     value: totalReceived > 0
-                        ? totalReceived.toStringAsFixed(2)
+                        ? UiHelpers.formatNumber(totalReceived)
                         : '');
               case 5:
                 return CellData(
                   value: totalBalance != 0
-                      ? totalBalance.toStringAsFixed(2)
+                      ? UiHelpers.formatNumber(totalBalance)
                       : '',
                   textColor: totalBalance > 0
                       ? colorScheme.error
@@ -539,15 +539,15 @@ class _SellerDashboardState extends State<SellerDashboard> {
               case 6:
                 final sum = movementEntries.fold<int>(
                     0, (s, e) => s + e.previousStock);
-                return CellData(value: sum > 0 ? sum.toString() : '');
+                return CellData(value: sum > 0 ? UiHelpers.formatNumber(sum) : '');
               case 7:
                 final sum = movementEntries.fold<int>(
                     0, (s, e) => s + e.newStockAdded);
-                return CellData(value: sum > 0 ? sum.toString() : '');
+                return CellData(value: sum > 0 ? UiHelpers.formatNumber(sum) : '');
               case 8:
                 final sum = movementEntries.fold<int>(
                     0, (s, e) => s + e.currentStock);
-                return CellData(value: sum > 0 ? sum.toString() : '');
+                return CellData(value: sum > 0 ? UiHelpers.formatNumber(sum) : '');
               default:
                 return const CellData();
             }
@@ -566,7 +566,7 @@ class _SellerDashboardState extends State<SellerDashboard> {
               case 1:
                 return CellData(
                     value: sales.quantitySold > 0
-                        ? sales.quantitySold.toString()
+                        ? UiHelpers.formatNumber(sales.quantitySold)
                         : '',
                     hint: '0');
               case 2:
@@ -576,26 +576,26 @@ class _SellerDashboardState extends State<SellerDashboard> {
                     : null;
                 return CellData(
                     value: sales.unitPrice > 0
-                        ? sales.unitPrice.toStringAsFixed(2)
+                        ? UiHelpers.formatNumber(sales.unitPrice)
                         : '',
                     hint: '0.00',
                     subtitle: dateStr);
               case 3:
                 return CellData(
                     value: sales.totalPrice > 0
-                        ? sales.totalPrice.toStringAsFixed(2)
+                        ? UiHelpers.formatNumber(sales.totalPrice)
                         : '',
                     hint: '0.00');
               case 4:
                 return CellData(
                     value: sales.amountReceived > 0
-                        ? sales.amountReceived.toStringAsFixed(2)
+                        ? UiHelpers.formatNumber(sales.amountReceived)
                         : '',
                     hint: '0.00');
               case 5:
                 final bal = sales.balanceDue;
                 return CellData(
-                  value: bal != 0 ? bal.toStringAsFixed(2) : '',
+                  value: bal != 0 ? UiHelpers.formatNumber(bal) : '',
                   hint: '0.00',
                   textColor: bal > 0
                       ? colorScheme.error
@@ -604,19 +604,19 @@ class _SellerDashboardState extends State<SellerDashboard> {
               case 6:
                 return CellData(
                     value: movement.previousStock > 0
-                        ? movement.previousStock.toString()
+                        ? UiHelpers.formatNumber(movement.previousStock)
                         : '',
                     hint: '0');
               case 7:
                 return CellData(
                     value: movement.newStockAdded > 0
-                        ? movement.newStockAdded.toString()
+                        ? UiHelpers.formatNumber(movement.newStockAdded)
                         : '',
                     hint: '0');
               case 8:
                 return CellData(
                     value: movement.currentStock > 0
-                        ? movement.currentStock.toString()
+                        ? UiHelpers.formatNumber(movement.currentStock)
                         : '',
                     hint: '0');
               default:

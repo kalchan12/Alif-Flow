@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:alif_flow/utils/ui_helpers.dart';
 
 class AdminStatsDashboard extends StatelessWidget {
   final double totalGlobalSales;
@@ -27,23 +28,23 @@ class AdminStatsDashboard extends StatelessWidget {
           if (isWide) {
             return Row(
               children: [
-                Expanded(child: _buildPrimaryCard('Total Revenue', '\$${totalGlobalSales.toStringAsFixed(2)}', Icons.account_balance_wallet_rounded, colorScheme)),
+                Expanded(child: _buildPrimaryCard('Total Revenue', '\$${UiHelpers.formatNumber(totalGlobalSales)}', Icons.account_balance_wallet_rounded, colorScheme)),
                 const SizedBox(width: 16),
-                Expanded(child: _buildSecondaryCard('Items Sold', '$totalItemsSold', Icons.shopping_bag_rounded, colorScheme)),
+                Expanded(child: _buildSecondaryCard('Items Sold', UiHelpers.formatNumber(totalItemsSold), Icons.shopping_bag_rounded, colorScheme)),
                 const SizedBox(width: 16),
-                Expanded(child: _buildSecondaryCard('Pending Reviews', '$pendingReports', Icons.assignment_late_rounded, colorScheme, isAlert: pendingReports > 0)),
+                Expanded(child: _buildSecondaryCard('Pending Reviews', UiHelpers.formatNumber(pendingReports), Icons.assignment_late_rounded, colorScheme, isAlert: pendingReports > 0)),
               ],
             );
           } else {
             return Column(
               children: [
-                _buildPrimaryCard('Total Revenue', '\$${totalGlobalSales.toStringAsFixed(2)}', Icons.account_balance_wallet_rounded, colorScheme),
+                _buildPrimaryCard('Total Revenue', '\$${UiHelpers.formatNumber(totalGlobalSales)}', Icons.account_balance_wallet_rounded, colorScheme),
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    Expanded(child: _buildSecondaryCard('Items Sold', '$totalItemsSold', Icons.shopping_bag_rounded, colorScheme)),
+                    Expanded(child: _buildSecondaryCard('Items Sold', UiHelpers.formatNumber(totalItemsSold), Icons.shopping_bag_rounded, colorScheme)),
                     const SizedBox(width: 16),
-                    Expanded(child: _buildSecondaryCard('Pending Reviews', '$pendingReports', Icons.assignment_late_rounded, colorScheme, isAlert: pendingReports > 0)),
+                    Expanded(child: _buildSecondaryCard('Pending Reviews', UiHelpers.formatNumber(pendingReports), Icons.assignment_late_rounded, colorScheme, isAlert: pendingReports > 0)),
                   ],
                 ),
               ],
