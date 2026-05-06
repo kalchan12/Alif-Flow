@@ -308,7 +308,9 @@ class _SpreadsheetTableState extends State<SpreadsheetTable> {
             ? colorScheme.tertiaryContainer.withValues(alpha: 0.1)
             : null,
         border: Border(
-          right: BorderSide(color: borderColor),
+          right: isFocused
+              ? BorderSide(color: colorScheme.primary, width: 2)
+              : BorderSide(color: borderColor),
           top: isFocused
               ? BorderSide(color: colorScheme.primary, width: 2)
               : BorderSide.none,
@@ -399,6 +401,10 @@ class _SpreadsheetTableState extends State<SpreadsheetTable> {
             color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
           ),
           border: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
+          disabledBorder: InputBorder.none,
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           isDense: true,
