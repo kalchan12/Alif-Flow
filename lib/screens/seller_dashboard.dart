@@ -10,6 +10,7 @@ import 'package:alif_flow/widgets/spreadsheet_table.dart';
 import 'package:alif_flow/widgets/seller_stats_dashboard.dart';
 import 'package:alif_flow/screens/my_reports_screen.dart';
 import 'package:alif_flow/services/report_service.dart';
+import 'package:alif_flow/services/auth_service.dart';
 import 'package:alif_flow/theme/theme_provider.dart';
 
 class SellerDashboard extends StatefulWidget {
@@ -23,6 +24,7 @@ class _SellerDashboardState extends State<SellerDashboard> {
   int _selectedIndex = 0;
   final PricingService _pricingService = PricingService();
   final ReportService _reportService = ReportService();
+  final AuthService _authService = AuthService();
 
   // --- State Variables ---
   bool _isLoading = true;
@@ -191,9 +193,47 @@ class _SellerDashboardState extends State<SellerDashboard> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final fullName = _authService.currentUserFullName ?? 'Seller';
+    final initial = fullName.isNotEmpty ? fullName[0].toUpperCase() : 'S';
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Seller Dashboard'),
+        title: Row(
+          children: [
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: colorScheme.primaryContainer,
+              child: Text(
+                initial,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onPrimaryContainer,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Hi, $fullName',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  'Seller Dashboard',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.normal,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
         actions: [
           ListenableBuilder(
             listenable: themeProvider,

@@ -61,58 +61,86 @@ class SellerStatsDashboard extends StatelessWidget {
   }
 
   Widget _buildCard(String title, int quantity, double earned, IconData icon, ColorScheme colorScheme, bool isPrimary) {
+    final iconColor = isPrimary ? colorScheme.onPrimary : colorScheme.primary;
+    final bgDeco = isPrimary
+        ? BoxDecoration(
+            gradient: LinearGradient(
+              colors: [colorScheme.primary, colorScheme.primary.withValues(alpha: 0.8)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: colorScheme.primary.withValues(alpha: 0.3),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          )
+        : BoxDecoration(
+            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+            ),
+          );
+
+    final titleColor = isPrimary ? colorScheme.onPrimary.withValues(alpha: 0.9) : colorScheme.onSurfaceVariant;
+    final valueColor = isPrimary ? colorScheme.onPrimary : colorScheme.onSurface;
+    final subValueColor = isPrimary ? colorScheme.onPrimary.withValues(alpha: 0.8) : colorScheme.onSurfaceVariant;
+
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isPrimary ? colorScheme.primaryContainer : colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isPrimary ? colorScheme.primary.withValues(alpha: 0.3) : colorScheme.outlineVariant.withValues(alpha: 0.5),
-        ),
-      ),
+      padding: const EdgeInsets.all(20),
+      decoration: bgDeco,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, size: 18, color: isPrimary ? colorScheme.primary : colorScheme.onSurfaceVariant),
-              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: isPrimary ? colorScheme.onPrimary.withValues(alpha: 0.2) : colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, size: 20, color: iconColor),
+              ),
+              const SizedBox(width: 12),
               Text(
                 title,
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: isPrimary ? colorScheme.onPrimaryContainer : colorScheme.onSurfaceVariant,
+                  color: titleColor,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           if (isLoading && !isPrimary)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.0),
-              child: SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
+            SizedBox(
+              height: 24,
+              width: 24,
+              child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.primary),
             )
           else ...[
             Text(
               '${quantity} items',
               style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: isPrimary ? colorScheme.primary : colorScheme.onSurface,
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+                color: valueColor,
+                letterSpacing: -0.5,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               '\$${earned.toStringAsFixed(2)} earned',
               style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: isPrimary ? colorScheme.onPrimaryContainer.withValues(alpha: 0.8) : colorScheme.onSurfaceVariant,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: subValueColor,
               ),
             ),
           ]

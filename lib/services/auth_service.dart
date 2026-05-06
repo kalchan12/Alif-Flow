@@ -47,4 +47,13 @@ class AuthService {
     }
     return null;
   }
+
+  // Get user full name
+  String? get currentUserFullName {
+    final user = currentUser;
+    if (user != null && user.userMetadata != null) {
+      return user.userMetadata!['full_name'] as String?;
+    }
+    return null;
+  }
 }

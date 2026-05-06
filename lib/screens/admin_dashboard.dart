@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:alif_flow/services/report_service.dart';
+import 'package:alif_flow/services/auth_service.dart';
 import 'package:alif_flow/screens/pricing_screen.dart';
+import 'package:alif_flow/widgets/admin_stats_dashboard.dart';
 import 'package:alif_flow/utils/ui_helpers.dart';
 import 'package:alif_flow/widgets/responsive_layout.dart';
 import 'package:alif_flow/theme/theme_provider.dart';
@@ -15,9 +17,16 @@ class AdminDashboard extends StatefulWidget {
 class _AdminDashboardState extends State<AdminDashboard> {
   int _selectedIndex = 0;
   final ReportService _reportService = ReportService();
+  final AuthService _authService = AuthService();
 
   bool _isLoading = true;
+  bool _isLoadingStats = true;
   List<Map<String, dynamic>> _reports = [];
+  Map<String, dynamic> _adminStats = {
+    'totalGlobalSales': 0.0,
+    'totalItemsSold': 0,
+    'pendingReports': 0,
+  };
 
   @override
   void initState() {
@@ -26,7 +35,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   Future<void> _loadReports() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _isLoadingStats = true;
+    });
+    
     try {
       _reports = await _reportService.fetchAllReports();
     } catch (e) {
@@ -35,13 +48,63 @@ class _AdminDashboardState extends State<AdminDashboard> {
       }
     }
     if (mounted) setState(() => _isLoading = false);
+
+    try {
+      final stats = await _reportService.getAdminDashboardStats();
+      if (mounted) {
+        setState(() {
+          _adminStats = stats;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading admin stats: $e');
+    }
+    if (mounted) setState(() => _isLoadingStats = false);
   }
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final fullName = _authService.currentUserFullName ?? 'Admin';
+    final initial = fullName.isNotEmpty ? fullName[0].toUpperCase() : 'A';
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin Dashboard'),
+        title: Row(
+          children: [
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: colorScheme.primaryContainer,
+              child: Text(
+                initial,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onPrimaryContainer,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Hi, $fullName',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  'Admin Dashboard',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.normal,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
         actions: [
           ListenableBuilder(
             listenable: themeProvider,
@@ -184,6 +247,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              AdminStatsDashboard(
+                totalGlobalSales: _adminStats['totalGlobalSales'] ?? 0.0,
+                totalItemsSold: _adminStats['totalItemsSold'] ?? 0,
+                pendingReports: _adminStats['pendingReports'] ?? 0,
+                isLoading: _isLoadingStats,
+              ),
               if (pending.isNotEmpty) ...[
                 _buildSectionTitle('Pending Review', Icons.hourglass_top, Colors.orange, colorScheme),
                 const SizedBox(height: 8),

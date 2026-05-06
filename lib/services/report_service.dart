@@ -138,6 +138,42 @@ class ReportService {
         .limit(50);
   }
 
+  // ── Admin: Fetch global dashboard stats ──
+  Future<Map<String, dynamic>> getAdminDashboardStats() async {
+    // 1. Fetch total sales from all approved reports
+    final approvedReports = await _supabase
+        .from('weekly_reports')
+        .select('total_sales, sales_entries(quantity_sold)')
+        .eq('status', 'approved');
+
+    double totalGlobalSales = 0.0;
+    int totalItemsSold = 0;
+
+    for (final report in approvedReports) {
+      totalGlobalSales += (report['total_sales'] as num?)?.toDouble() ?? 0.0;
+      if (report['sales_entries'] != null) {
+        final entries = report['sales_entries'] as List<dynamic>;
+        for (final entry in entries) {
+          totalItemsSold += (entry['quantity_sold'] as num?)?.toInt() ?? 0;
+        }
+      }
+    }
+
+    // 2. Fetch count of pending (submitted) reports that need review
+    final pendingReportsResponse = await _supabase
+        .from('weekly_reports')
+        .select('id', const FetchOptions(count: CountOption.exact))
+        .eq('status', 'submitted');
+    
+    final pendingCount = pendingReportsResponse.length;
+
+    return {
+      'totalGlobalSales': totalGlobalSales,
+      'totalItemsSold': totalItemsSold,
+      'pendingReports': pendingCount,
+    };
+  }
+
   // ── Fetch full report detail with entries ──
   Future<Map<String, dynamic>> fetchReportDetail(String reportId) async {
     final report = await _supabase
