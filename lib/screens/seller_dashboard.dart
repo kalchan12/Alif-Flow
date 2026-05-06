@@ -463,6 +463,10 @@ class _SellerDashboardState extends State<SellerDashboard> {
           cellBuilder: (row, col) {
             final sales = salesEntries[row];
             final movement = movementEntries[row];
+            // Find matching product for updated date
+            final matchingProduct = _allProducts.where(
+              (p) => p.productName.toLowerCase() == sales.productName.toLowerCase(),
+            );
             switch (col) {
               case 0:
                 return CellData(
@@ -474,11 +478,16 @@ class _SellerDashboardState extends State<SellerDashboard> {
                         : '',
                     hint: '0');
               case 2:
+                final updatedAt = matchingProduct.isNotEmpty ? matchingProduct.first.updatedAt : null;
+                final dateStr = updatedAt != null
+                    ? '${updatedAt.year}-${updatedAt.month.toString().padLeft(2, '0')}-${updatedAt.day.toString().padLeft(2, '0')}'
+                    : null;
                 return CellData(
                     value: sales.unitPrice > 0
                         ? sales.unitPrice.toStringAsFixed(2)
                         : '',
-                    hint: '0.00');
+                    hint: '0.00',
+                    subtitle: dateStr);
               case 3:
                 return CellData(
                     value: sales.totalPrice > 0

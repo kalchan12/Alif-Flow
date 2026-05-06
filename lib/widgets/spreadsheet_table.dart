@@ -25,11 +25,13 @@ class CellData {
   final String value;
   final String hint;
   final Color? textColor;
+  final String? subtitle;
 
   const CellData({
     this.value = '',
     this.hint = '',
     this.textColor,
+    this.subtitle,
   });
 }
 
@@ -332,17 +334,32 @@ class _SpreadsheetTableState extends State<SpreadsheetTable> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       alignment: column.isProductName ? Alignment.centerLeft : Alignment.center,
-      child: Text(
-        cellData.value.isNotEmpty ? cellData.value : cellData.hint,
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: column.isCalculated ? FontWeight.w700 : FontWeight.w500,
-          color: cellData.textColor ??
-              (cellData.value.isNotEmpty
-                  ? colorScheme.onSurface
-                  : colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
-        ),
-        overflow: TextOverflow.ellipsis,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: column.isProductName ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+        children: [
+          Text(
+            cellData.value.isNotEmpty ? cellData.value : cellData.hint,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: column.isCalculated ? FontWeight.w700 : FontWeight.w500,
+              color: cellData.textColor ??
+                  (cellData.value.isNotEmpty
+                      ? colorScheme.onSurface
+                      : colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+          if (cellData.subtitle != null && cellData.subtitle!.isNotEmpty)
+            Text(
+              cellData.subtitle!,
+              style: TextStyle(
+                fontSize: 9,
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+        ],
       ),
     );
   }
