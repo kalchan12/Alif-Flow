@@ -94,7 +94,7 @@ class _SpreadsheetTableState extends State<SpreadsheetTable> {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         border: Border.all(color: borderColor),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.zero,
         boxShadow: [
           BoxShadow(
             color: colorScheme.shadow.withValues(alpha: 0.03),
