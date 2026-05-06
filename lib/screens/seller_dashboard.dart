@@ -7,7 +7,9 @@ import 'package:alif_flow/services/pricing_service.dart';
 import 'package:alif_flow/utils/ui_helpers.dart';
 import 'package:alif_flow/widgets/responsive_layout.dart';
 import 'package:alif_flow/widgets/spreadsheet_table.dart';
+import 'package:alif_flow/widgets/seller_stats_dashboard.dart';
 import 'package:alif_flow/screens/my_reports_screen.dart';
+import 'package:alif_flow/services/report_service.dart';
 import 'package:alif_flow/theme/theme_provider.dart';
 
 class SellerDashboard extends StatefulWidget {
@@ -20,11 +22,21 @@ class SellerDashboard extends StatefulWidget {
 class _SellerDashboardState extends State<SellerDashboard> {
   int _selectedIndex = 0;
   final PricingService _pricingService = PricingService();
+  final ReportService _reportService = ReportService();
 
   // --- State Variables ---
   bool _isLoading = true;
+  bool _isLoadingStats = true;
   List<ProductPrice> _allProducts = [];
   Map<String, List<ProductPrice>> _productsByCategory = {};
+
+  // Historical Stats
+  Map<String, dynamic> _historicalStats = {
+    'allTimeEarned': 0.0,
+    'allTimeQuantity': 0,
+    'weeklyEarned': 0.0,
+    'weeklyQuantity': 0,
+  };
 
   // Sales & movement data per category
   final Map<String, List<SalesEntry>> _salesByCategory = {};
@@ -105,6 +117,42 @@ class _SellerDashboardState extends State<SellerDashboard> {
     if (mounted) {
       setState(() => _isLoading = false);
     }
+    
+    // Fetch historical stats independently so it doesn't block UI load
+    _fetchHistoricalStats();
+  }
+
+  Future<void> _fetchHistoricalStats() async {
+    setState(() => _isLoadingStats = true);
+    try {
+      final stats = await _reportService.getSellerDashboardStats();
+      if (mounted) {
+        setState(() {
+          _historicalStats = stats;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching stats: $e');
+    }
+    if (mounted) {
+      setState(() => _isLoadingStats = false);
+    }
+  }
+
+  int get _currentDraftQuantity {
+    int total = 0;
+    for (final salesList in _salesByCategory.values) {
+      total += salesList.fold(0, (sum, e) => sum + e.quantitySold);
+    }
+    return total;
+  }
+
+  double get _currentDraftEarned {
+    double total = 0.0;
+    for (final salesList in _salesByCategory.values) {
+      total += salesList.fold(0.0, (sum, e) => sum + e.totalPrice);
+    }
+    return total;
   }
 
   /// Sync unit prices from the product catalog to sales entries.
@@ -267,6 +315,15 @@ class _SellerDashboardState extends State<SellerDashboard> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        SellerStatsDashboard(
+                          currentDraftQuantity: _currentDraftQuantity,
+                          currentDraftEarned: _currentDraftEarned,
+                          weeklyQuantity: _historicalStats['weeklyQuantity'] ?? 0,
+                          weeklyEarned: _historicalStats['weeklyEarned'] ?? 0.0,
+                          allTimeQuantity: _historicalStats['allTimeQuantity'] ?? 0,
+                          allTimeEarned: _historicalStats['allTimeEarned'] ?? 0.0,
+                          isLoading: _isLoadingStats,
+                        ),
                         for (int i = 0; i < categories.length; i++) ...[
                           _buildCategorySection(
                             title: _categoryDisplayNames[categories[i]] ?? categories[i],

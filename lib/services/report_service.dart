@@ -80,6 +80,55 @@ class ReportService {
         .limit(20);
   }
 
+  // ── Seller: Fetch dashboard stats (All Time and Last 7 Days) ──
+  Future<Map<String, dynamic>> getSellerDashboardStats() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) throw Exception('Not authenticated');
+
+    // Fetch all reports for the user, joined with their sales_entries to calculate quantities
+    final response = await _supabase
+        .from('weekly_reports')
+        .select('*, sales_entries(quantity_sold)')
+        .eq('seller_id', user.id)
+        .eq('status', 'approved'); // Only count approved reports as per user clarification
+
+    double allTimeEarned = 0.0;
+    int allTimeQuantity = 0;
+    double weeklyEarned = 0.0;
+    int weeklyQuantity = 0;
+
+    final now = DateTime.now();
+    final sevenDaysAgo = now.subtract(const Duration(days: 7));
+
+    for (final report in response) {
+      final totalSales = (report['total_sales'] as num?)?.toDouble() ?? 0.0;
+      final createdAt = DateTime.parse(report['created_at']);
+      
+      int reportQuantity = 0;
+      if (report['sales_entries'] != null) {
+        final entries = report['sales_entries'] as List<dynamic>;
+        for (final entry in entries) {
+          reportQuantity += (entry['quantity_sold'] as num?)?.toInt() ?? 0;
+        }
+      }
+
+      allTimeEarned += totalSales;
+      allTimeQuantity += reportQuantity;
+
+      if (createdAt.isAfter(sevenDaysAgo)) {
+        weeklyEarned += totalSales;
+        weeklyQuantity += reportQuantity;
+      }
+    }
+
+    return {
+      'allTimeEarned': allTimeEarned,
+      'allTimeQuantity': allTimeQuantity,
+      'weeklyEarned': weeklyEarned,
+      'weeklyQuantity': weeklyQuantity,
+    };
+  }
+
   // ── Admin: Fetch all submitted reports ──
   Future<List<Map<String, dynamic>>> fetchAllReports() async {
     return await _supabase
