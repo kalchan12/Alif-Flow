@@ -98,7 +98,7 @@ class ProductMovementEntry {
   }) : id = id ?? UniqueKey().toString();
 
   int get currentStock =>
-      manualCurrentStock ?? (previousStock - productsMoved + newStockAdded);
+      manualCurrentStock ?? (previousStock + newStockAdded);
 
   Map<String, dynamic> toJson() {
     return {

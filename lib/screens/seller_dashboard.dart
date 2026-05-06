@@ -459,7 +459,6 @@ class _SellerDashboardState extends State<SellerDashboard> {
                 isNumeric: true,
                 isReadOnly: true),
             SpreadsheetColumn(header: 'Prev Stock', width: 90, isNumeric: true),
-            SpreadsheetColumn(header: 'Moved', width: 80, isNumeric: true),
             SpreadsheetColumn(header: 'Added', width: 80, isNumeric: true),
             SpreadsheetColumn(
                 header: 'Current Stock',
@@ -503,13 +502,9 @@ class _SellerDashboardState extends State<SellerDashboard> {
                 return CellData(value: sum > 0 ? sum.toString() : '');
               case 7:
                 final sum = movementEntries.fold<int>(
-                    0, (s, e) => s + e.productsMoved);
-                return CellData(value: sum > 0 ? sum.toString() : '');
-              case 8:
-                final sum = movementEntries.fold<int>(
                     0, (s, e) => s + e.newStockAdded);
                 return CellData(value: sum > 0 ? sum.toString() : '');
-              case 9:
+              case 8:
                 final sum = movementEntries.fold<int>(
                     0, (s, e) => s + e.currentStock);
                 return CellData(value: sum > 0 ? sum.toString() : '');
@@ -574,17 +569,11 @@ class _SellerDashboardState extends State<SellerDashboard> {
                     hint: '0');
               case 7:
                 return CellData(
-                    value: movement.productsMoved > 0
-                        ? movement.productsMoved.toString()
-                        : '',
-                    hint: '0');
-              case 8:
-                return CellData(
                     value: movement.newStockAdded > 0
                         ? movement.newStockAdded.toString()
                         : '',
                     hint: '0');
-              case 9:
+              case 8:
                 return CellData(
                     value: movement.currentStock > 0
                         ? movement.currentStock.toString()
@@ -613,12 +602,9 @@ class _SellerDashboardState extends State<SellerDashboard> {
                   movement.previousStock = int.tryParse(value) ?? 0;
                   break;
                 case 7:
-                  movement.productsMoved = int.tryParse(value) ?? 0;
-                  break;
-                case 8:
                   movement.newStockAdded = int.tryParse(value) ?? 0;
                   break;
-                // col 9 (Current Stock) is calculated
+                // col 8 (Current Stock) is calculated
               }
             });
           },
