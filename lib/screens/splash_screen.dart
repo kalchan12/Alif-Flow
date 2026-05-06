@@ -44,10 +44,16 @@ class _SplashScreenState extends State<SplashScreen> {
                   color: colorScheme.primary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.insights,
-                  color: colorScheme.primary,
-                  size: 60,
+                child: Center(
+                  child: Text(
+                    'AF',
+                    style: TextStyle(
+                      fontSize: 48,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.primary,
+                      letterSpacing: -2,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 24),

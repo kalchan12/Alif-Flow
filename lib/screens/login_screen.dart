@@ -123,10 +123,14 @@ class _LoginScreenState extends State<LoginScreen> {
                             shape: BoxShape.circle,
                           ),
                           child: Center(
-                            child: Icon(
-                              Icons.insights,
-                              color: colorScheme.primary,
-                              size: 40,
+                            child: Text(
+                              'AF',
+                              style: TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.primary,
+                                letterSpacing: -1,
+                              ),
                             ),
                           ),
                         ),
