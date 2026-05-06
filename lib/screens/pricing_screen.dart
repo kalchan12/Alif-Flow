@@ -355,6 +355,9 @@ class _PricingScreenState extends State<PricingScreen> {
 
   Widget _buildProductRow(ProductPrice product, ColorScheme colorScheme, {bool isLast = false}) {
     final controller = _priceControllers[product.id];
+    final updatedText = product.updatedAt != null
+        ? '${product.updatedAt!.year}-${product.updatedAt!.month.toString().padLeft(2, '0')}-${product.updatedAt!.day.toString().padLeft(2, '0')}'
+        : 'Not set';
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -363,16 +366,29 @@ class _PricingScreenState extends State<PricingScreen> {
       ),
       child: Row(
         children: [
-          // Product name
+          // Product name + last updated
           Expanded(
             flex: 3,
-            child: Text(
-              product.productName,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: colorScheme.onSurface,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  product.productName,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Updated: $updatedText',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                  ),
+                ),
+              ],
             ),
           ),
 

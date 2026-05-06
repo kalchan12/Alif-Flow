@@ -22,6 +22,26 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
   bool _isLoading = true;
   List<Map<String, dynamic>> _reports = [];
 
+  // Date filter
+  DateTime? _filterStartDate;
+  DateTime? _filterEndDate;
+
+  List<Map<String, dynamic>> get _filteredReports {
+    if (_filterStartDate == null && _filterEndDate == null) return _reports;
+
+    return _reports.where((report) {
+      final createdAtStr = report['created_at'] as String?;
+      if (createdAtStr == null) return false;
+      final createdAt = DateTime.tryParse(createdAtStr);
+      if (createdAt == null) return false;
+
+      final dateOnly = DateTime(createdAt.year, createdAt.month, createdAt.day);
+      if (_filterStartDate != null && dateOnly.isBefore(_filterStartDate!)) return false;
+      if (_filterEndDate != null && dateOnly.isAfter(_filterEndDate!)) return false;
+      return true;
+    }).toList();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -38,6 +58,40 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
       }
     }
     if (mounted) setState(() => _isLoading = false);
+  }
+
+  Future<void> _pickDateRange() async {
+    final now = DateTime.now();
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2024),
+      lastDate: now,
+      initialDateRange: _filterStartDate != null && _filterEndDate != null
+          ? DateTimeRange(start: _filterStartDate!, end: _filterEndDate!)
+          : DateTimeRange(start: now.subtract(const Duration(days: 30)), end: now),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme,
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        _filterStartDate = picked.start;
+        _filterEndDate = picked.end;
+      });
+    }
+  }
+
+  void _clearFilter() {
+    setState(() {
+      _filterStartDate = null;
+      _filterEndDate = null;
+    });
   }
 
   Future<void> _regenerateReport(Map<String, dynamic> report) async {
@@ -206,7 +260,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
       onRefresh: _loadReports,
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: _reports.length + 1,
+        itemCount: _filteredReports.length + 2, // header + filter + reports
         itemBuilder: (context, index) {
           if (index == 0) {
             return Padding(
@@ -222,7 +276,65 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
             );
           }
 
-          final report = _reports[index - 1];
+          if (index == 1) {
+            // Date filter bar
+            final hasFilter = _filterStartDate != null || _filterEndDate != null;
+            final filterLabel = hasFilter
+                ? '${_filterStartDate!.year}-${_filterStartDate!.month.toString().padLeft(2, '0')}-${_filterStartDate!.day.toString().padLeft(2, '0')}  →  ${_filterEndDate!.year}-${_filterEndDate!.month.toString().padLeft(2, '0')}-${_filterEndDate!.day.toString().padLeft(2, '0')}'
+                : 'All dates';
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: _pickDateRange,
+                      borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.date_range_rounded, size: 18, color: colorScheme.primary),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                filterLabel,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: hasFilter ? colorScheme.onSurface : colorScheme.onSurfaceVariant,
+                                  fontWeight: hasFilter ? FontWeight.w600 : FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                            Icon(Icons.arrow_drop_down, color: colorScheme.onSurfaceVariant),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (hasFilter) ...[
+                    const SizedBox(width: 8),
+                    IconButton(
+                      onPressed: _clearFilter,
+                      icon: Icon(Icons.clear_rounded, size: 20, color: colorScheme.error),
+                      tooltip: 'Clear filter',
+                      style: IconButton.styleFrom(
+                        backgroundColor: colorScheme.errorContainer.withValues(alpha: 0.3),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            );
+          }
+
+          final report = _filteredReports[index - 2];
           return _buildReportCard(report, colorScheme);
         },
       ),
