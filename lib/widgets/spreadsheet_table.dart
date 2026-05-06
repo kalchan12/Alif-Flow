@@ -355,7 +355,8 @@ class _SpreadsheetTableState extends State<SpreadsheetTable> {
               cellData.subtitle!,
               style: TextStyle(
                 fontSize: 9,
-                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                fontWeight: FontWeight.w600,
+                color: colorScheme.primary.withValues(alpha: 0.7),
               ),
               overflow: TextOverflow.ellipsis,
             ),

@@ -431,7 +431,8 @@ class _PricingScreenState extends State<PricingScreen> {
                 updatedText,
                 style: TextStyle(
                   fontSize: 10,
-                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.primary.withValues(alpha: 0.7),
                 ),
               ),
             ],
