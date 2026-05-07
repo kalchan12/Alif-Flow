@@ -176,18 +176,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           obscureText: _obscurePassword,
                         ),
-                        const SizedBox(height: 12),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton(
-                            onPressed: () {
-                              // Forgot password logic
-                            },
-                            child: const Text('Forgot Password?'),
-                          ),
-                        ),
                         const SizedBox(height: 24),
-                        const SizedBox(height: 32),
                         ElevatedButton(
                           onPressed: _isLoading ? null : _signIn,
                           child: _isLoading 
