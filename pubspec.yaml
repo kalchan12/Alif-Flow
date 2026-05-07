@@ -66,7 +66,6 @@ flutter:
 
   assets:
     - .env
-    - assets/logo.png
     - assets/icon/
 
   # An image asset can refer to one or more resolution-specific "variants", see
@@ -98,5 +97,5 @@ flutter:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: false
-  image_path: "assets/icon/alif_flow_app_icon.svg"
+  image_path: "assets/icon/alif_flow_app_icon.png"
   min_sdk_android: 21

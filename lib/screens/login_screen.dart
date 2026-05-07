@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:alif_flow/theme/theme_provider.dart';
 import 'package:alif_flow/services/auth_service.dart';
 import 'package:alif_flow/utils/ui_helpers.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -115,19 +115,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Logo placeholder
-                        Container(
-                          height: 80,
-                          width: 80,
-                          decoration: BoxDecoration(
-                            color: colorScheme.primary.withValues(alpha: 0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Center(
-                            child: SvgPicture.asset(
-                              'assets/icon/alif_flow_app_icon.svg',
-                              width: 80,
-                              height: 80,
+                        // Logo
+                        Center(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: Image.asset(
+                              'assets/icon/alif_flow_app_icon.png',
+                              width: 100,
+                              height: 100,
                               fit: BoxFit.contain,
                             ),
                           ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -38,20 +37,13 @@ class _SplashScreenState extends State<SplashScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Logo / Icon
-              Container(
-                height: 120,
-                width: 120,
-                decoration: BoxDecoration(
-                  color: colorScheme.primary.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: SvgPicture.asset(
-                    'assets/icon/alif_flow_app_icon.svg',
-                    width: 120,
-                    height: 120,
-                    fit: BoxFit.contain,
-                  ),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: Image.asset(
+                  'assets/icon/alif_flow_app_icon.png',
+                  width: 140,
+                  height: 140,
+                  fit: BoxFit.contain,
                 ),
               ),
               const SizedBox(height: 24),
