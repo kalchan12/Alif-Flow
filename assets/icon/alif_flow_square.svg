@@ -1,0 +1,27 @@
+<svg width="1024" height="1024" viewBox="190 30 300 300" xmlns="http://www.w3.org/2000/svg">
+  <g>
+    <!-- App icon rounded square -->
+    <rect x="0" y="0" width="300" height="300" rx="64" ry="64" style="fill:rgb(26, 71, 49);"/>
+
+    <!-- Subtle inner tone -->
+    <rect x="0" y="160" width="300" height="140" rx="0" opacity="0.4" style="fill:rgb(20, 61, 40);"/>
+    <rect x="0" y="230" width="300" height="70" rx="0" opacity="0.18" style="fill:rgb(15, 46, 28);"/>
+
+    <!-- A letterform -->
+    <polygon points="60,210 100,70 120,70 145,162 125,162 104,90 80,210" style="fill:rgb(255, 255, 255);"/>
+    <polygon points="100,70 140,70 195,210 170,210 128,95" style="fill:rgb(255, 255, 255);"/>
+    <rect x="80" y="145" width="80" height="20" rx="4" style="fill:rgb(255, 255, 255);"/>
+
+    <!-- F letterform -->
+    <rect x="185" y="70" width="26" height="140" rx="4" style="fill:rgb(93, 202, 165);"/>
+    <rect x="185" y="70" width="75" height="20" rx="4" style="fill:rgb(93, 202, 165);"/>
+    <rect x="185" y="135" width="56" height="18" rx="4" style="fill:rgb(93, 202, 165);"/>
+
+    <!-- Dot accent -->
+    <circle cx="248" cy="218" r="9" opacity="0.85" style="fill:rgb(93, 202, 165);"/>
+    <circle cx="248" cy="218" r="5" fill="#1A4731" style="fill:rgb(26, 71, 49);"/>
+
+    <!-- Wordmark inside icon at bottom -->
+    <text x="150" y="270" text-anchor="middle" font-size="30" font-weight="600" fill="#5DCAA5" font-family="sans-serif">Alif-Flow</text>
+  </g>
+</svg>
